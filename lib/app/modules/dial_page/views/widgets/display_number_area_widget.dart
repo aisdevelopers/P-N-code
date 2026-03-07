@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
-
 import '../../../../utils/constants/img_constants.dart';
 import '../../../../utils/helper_functions.dart';
 import '../../../settings/models/animation_type_model.dart';

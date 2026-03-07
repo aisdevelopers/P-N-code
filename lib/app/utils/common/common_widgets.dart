@@ -36,6 +36,14 @@ class CommonWidgets {
             ? AppColors.lightColor
             : AppColors.darkColor,
       ),
+      listItemDecoration: ListItemDecoration(
+        selectedColor: ThemeController.instance.isDarkMode()
+            ? Colors.white10
+            : Colors.black12,
+        highlightColor: ThemeController.instance.isDarkMode()
+            ? Colors.white10
+            : Colors.black12,
+      ),
       // hintStyle: Theme.of(
       //   context ?? Get.context!,
       // ).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w300),

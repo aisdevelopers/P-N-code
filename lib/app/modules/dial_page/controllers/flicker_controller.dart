@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:get/get.dart';
-
 import '../../../utils/constants/key_constants.dart';
 
 class FlickerController extends GetxController {

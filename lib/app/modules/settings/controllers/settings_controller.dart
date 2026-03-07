@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:pn_code/app/modules/settings/models/mode_model.dart';
-
 import '../../../utils/constants/key_constants.dart';
 import '../../../utils/services/local_storage.dart';
 import '../../dial_page/controllers/dial_page_controller.dart';
@@ -350,17 +348,17 @@ class SettingsController extends GetxController {
   Future<bool> handleBackPress() async {
     if (!hasUnsavedChanges()) return true;
 
-    final result = await Get.dialog<bool>(
+    final result = await Get.dialog<String>(
       AlertDialog(
         title: const Text("Unsaved Changes"),
         content: const Text("Do you want to save your changes before leaving?"),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
+            onPressed: () => Get.back(result: "no"),
             child: const Text("No"),
           ),
           ElevatedButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () => Get.back(result: "yes"),
             child: const Text("Yes"),
           ),
         ],
@@ -368,11 +366,15 @@ class SettingsController extends GetxController {
       barrierDismissible: false,
     );
 
-    if (result == true) {
-      await saveForm();
+    if (result == "yes") {
+      return false; // stay on same page
     }
 
-    return true;
+    if (result == "no") {
+      return true; // go back
+    }
+
+    return false;
   }
 
   void _updateInitialValues() {

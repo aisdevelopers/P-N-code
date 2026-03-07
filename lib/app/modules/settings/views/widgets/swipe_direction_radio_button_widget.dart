@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-
 import '../../../dial_page/controllers/swipe_controller.dart';
 import '../../controllers/settings_controller.dart';
 

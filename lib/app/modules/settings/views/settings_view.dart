@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pn_code/app/modules/settings/views/widgets/settings_feedback_trick_radio_buttton.dart';
 import 'package:pn_code/app/modules/settings/views/widgets/settings_mode_dropdown_widget.dart';
 import 'package:pn_code/app/modules/settings/views/widgets/settings_number_dropdown_widget.dart';
+import 'package:pn_code/app/routes/app_pages.dart';
 
 import 'widgets/settings_trick_animation_duration_widget.dart';
 import 'widgets/settings_trick_animation_type_widget.dart';
@@ -46,7 +47,15 @@ class SettingsView extends GetView<SettingsController> {
             'Settings',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          actions: [ThemeModeUpdateWidget()],
+          actions: [
+            GestureDetector(
+              onTap: () {
+                Get.toNamed(Routes.DIAL_NUMBER_HISTORY);
+              },
+              child: Icon(Icons.person),
+            ),
+            ThemeModeUpdateWidget(),
+          ],
         ),
         body: SafeArea(
           child: Padding(

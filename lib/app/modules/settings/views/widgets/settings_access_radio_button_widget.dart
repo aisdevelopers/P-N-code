@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-
 import '../../controllers/settings_controller.dart';
 
 class SettingsAccessRadioButtonWidget extends GetView<SettingsController> {

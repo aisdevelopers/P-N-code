@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_tap_action/multi_tap_action.dart';
-
 import '../../../../utils/helper_functions.dart';
 import '../../../../utils/themes/app_colors.dart';
 

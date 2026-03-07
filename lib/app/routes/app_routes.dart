@@ -7,6 +7,7 @@ abstract class Routes {
   static const SETTINGS = _Paths.SETTINGS;
   static const FLICKER_TEST = _Paths.FLICKER_TEST;
   static const ONBOARDING = _Paths.ONBOARDING;
+  static const DIAL_NUMBER_HISTORY = _Paths.DIAL_NUMBER_HISTORY;
 }
 
 abstract class _Paths {
@@ -15,4 +16,5 @@ abstract class _Paths {
   static const SETTINGS = '/settings';
   static const FLICKER_TEST = '/flicker-test';
   static const ONBOARDING = '/onboarding';
+  static const DIAL_NUMBER_HISTORY = '/dial-number-history';
 }

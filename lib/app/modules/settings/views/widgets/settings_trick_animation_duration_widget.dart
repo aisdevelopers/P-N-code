@@ -1,7 +1,6 @@
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-
 import '../../../../utils/common/common_widgets.dart';
 import '../../controllers/settings_controller.dart';
 import '../../models/animation_duration_model.dart';

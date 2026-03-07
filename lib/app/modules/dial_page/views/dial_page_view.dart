@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-
 import '../../../utils/helper_functions.dart';
 import '../../../utils/themes/app_colors.dart';
 import '../../settings/models/animation_type_model.dart';

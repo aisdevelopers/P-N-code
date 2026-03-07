@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:animated_glitch/animated_glitch.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
@@ -557,13 +556,11 @@ class DialPageController extends GetxController
   Future<void> _addAndSaveNumber(String number) async {
     if (number.isEmpty) return;
 
-    if (!enteredNumbers.any((e) => e.number == number)) {
-      enteredNumbers.insert(
-        0,
-        DialEntry(number: number, dateTime: DateTime.now()),
-      );
+    enteredNumbers.insert(
+      0,
+      DialEntry(number: number, dateTime: DateTime.now()),
+    );
 
-      await _saveNumbersToICloud();
-    }
+    await _saveNumbersToICloud();
   }
 }
