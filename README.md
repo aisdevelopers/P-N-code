@@ -159,16 +159,5 @@ await LocalStorage.init();
 
 ---
 
-This README provides a clear overview for developers and users alike.
 
----
 
-If you want, I can also create a **more visually appealing version** with:
-
-* Screenshots placeholders
-* Emoji bullets for gestures and animations
-* Table for settings options
-
-It would make it much easier to read.
-
-Do you want me to do that?

@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:pn_code/app/modules/dial_page/views/widgets/screen_scan_overlay.dart';
 import '../../../utils/helper_functions.dart';
 import '../../../utils/themes/app_colors.dart';
 import '../../settings/models/animation_type_model.dart';
@@ -28,8 +29,13 @@ class DialPageView extends StatelessWidget {
         return Stack(
           children: [
             DarkGlitchOverlay(
-              isFlickering: controller.shouldFlicker,
-              child: const DialPadWidget(),
+              isFlickering: controller.shouldGlitch,
+              child: ScanRevealOverlay(
+                trigger:
+                    controller.revealAnswer &&
+                    controller.animationType == AnimationsType.fadeAnimation,
+                child: const DialPadWidget(),
+              ),
             ),
 
             // 🔒 LOCK OVERLAY
@@ -85,15 +91,14 @@ class DialPadWidget extends GetView<DialPageController> {
                     color: Colors.transparent,
                     child: GetBuilder<FlickerController>(
                       id: KeyConstants.dialPadWidgetKey,
-                      init: FlickerController(),
-                      initState: (_) {},
-                      builder: (_) {
+                      init: Get.find<FlickerController>(),
+                      builder: (flickerController) {
                         return AnimatedOpacity(
                           opacity:
                               DialPageController.instance.animationType ==
                                   AnimationsType.simpleAnimation
                               ? 1.0
-                              : FlickerController.instance.opacity.value,
+                              : flickerController.opacity.value,
                           duration: const Duration(milliseconds: 80),
                           child: Wrap(
                             spacing: 25,

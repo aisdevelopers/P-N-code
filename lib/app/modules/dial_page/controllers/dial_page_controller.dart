@@ -92,6 +92,12 @@ class DialPageController extends GetxController
   bool get hasRevealed => _hasRevealed.value;
   set hasRevealed(bool value) => _hasRevealed.value = value;
 
+  final RxBool _shouldGlitch = false.obs;
+  bool get shouldGlitch => _shouldGlitch.value;
+  set shouldGlitch(bool value) {
+    _shouldGlitch.value = value;
+  }
+
   final RxBool _isLocked = false.obs;
   bool get isLocked => _isLocked.value;
   set isLocked(bool value) {
@@ -143,6 +149,7 @@ class DialPageController extends GetxController
   @override
   void onInit() {
     _loadNumbersFromICloud();
+
 
     // STEP 1: Loading the actual number from Local Storage
     actualNumber = LocalStorage.get(KeyConstants.savedPhoneNumberKey) ?? '';
@@ -394,11 +401,11 @@ class DialPageController extends GetxController
 
             await _addAndSaveNumber(displayNumber);
 
-            shouldFlicker = true;
+            shouldGlitch = true;
 
             await Future.delayed(const Duration(milliseconds: 1200));
 
-            shouldFlicker = false;
+            shouldGlitch = false;
           }
         } else {
           revealAnswer = true;
@@ -439,11 +446,11 @@ class DialPageController extends GetxController
           hasRevealed = true;
           await _addAndSaveNumber(displayNumber);
 
-          shouldFlicker = true;
+          shouldGlitch = true;
 
           await Future.delayed(const Duration(milliseconds: 1200));
 
-          shouldFlicker = false;
+          shouldGlitch = false;
         }
       } else {
         revealAnswer = true;
@@ -458,26 +465,28 @@ class DialPageController extends GetxController
     // Swipe just confirms reveal
     // ===================================================
     if (mode == 'Covert Mode') {
-      if (animationType == AnimationsType.scrambleAnimation) {
-        // FlickerController.instance.startFlicker();
-        revealAnswer = true;
-        await _addAndSaveNumber(displayNumber);
-
-        await Future.delayed(const Duration(seconds: 1));
-        // FlickerController.instance.stopFlicker();
-      } else if (animationType == AnimationsType.glitchyAnimation) {
-        // ❗ Don't glitch again if already revealed
+      if (animationType == AnimationsType.glitchyAnimation) {
         if (!hasRevealed) {
           revealAnswer = true;
           hasRevealed = true;
+
           await _addAndSaveNumber(displayNumber);
 
-          shouldFlicker = true;
+          shouldGlitch = true;
 
           await Future.delayed(const Duration(milliseconds: 1200));
 
-          shouldFlicker = false;
+          shouldGlitch = false;
         }
+      } else if (animationType == AnimationsType.flickerAnimation) {
+        revealAnswer = true;
+        await _addAndSaveNumber(displayNumber);
+
+        shouldFlicker = true;
+
+        await Future.delayed(const Duration(milliseconds: 1200));
+
+        shouldFlicker = false;
       } else {
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);

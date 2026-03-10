@@ -242,7 +242,7 @@ class SettingsController extends GetxController {
         DialPageController.instance.displayNumber = '';
         DialPageController.instance.revealAnswer = false;
         DialPageController.instance.hasRevealed = false;
-        DialPageController.instance.shouldFlicker = false;
+        DialPageController.instance.shouldGlitch = false;
         Get.back();
       }
       if (selectedMode.title != "Lock Mode") {
