@@ -1,9 +1,7 @@
-import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pn_code/app/modules/dial_page/controllers/dial_page_controller.dart';
 import 'package:pn_code/app/modules/settings/controllers/settings_controller.dart';
-import 'package:pn_code/app/utils/common/common_widgets.dart';
 import 'package:pn_code/app/utils/constants/key_constants.dart';
 import 'package:pn_code/app/utils/services/local_storage.dart';
 
@@ -18,66 +16,68 @@ class SettingsNumberDropdownWidget extends GetView<SettingsController> {
       }
 
       return Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(bottom: 5),
-            child: Text(
-              "Saved Numbers:",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-          ),
+          Text("Saved Numbers:", style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 10),
 
-          CustomDropdown<String>(
-            hintText: 'Select Number',
-            items: [...controller.savedNumbers],
-            initialItem: controller.savedNumber,
-            itemsListPadding: const EdgeInsets.all(0),
-            listItemPadding: const EdgeInsets.all(0),
-            closedHeaderPadding:
-                const EdgeInsets.fromLTRB(0, 5, 20, 5),
-            expandedHeaderPadding:
-                const EdgeInsets.fromLTRB(0, 5, 20, 5),
-            decoration: CommonWidgets.customDropdownDecoration(),
-            headerBuilder: (context, selectedItem, enabled) {
-              return ListTile(
-                minTileHeight: 0,
-                title: Text(
-                  selectedItem,
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                        fontWeight: FontWeight.w400,
-                      ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: controller.savedNumbers.length,
+            itemBuilder: (context, index) {
+              final number = controller.savedNumbers[index];
+
+              return Card(
+                elevation: 1,
+                child: ListTile(
+                  onTap: () async {
+                    controller.savedNumber = number;
+                    controller.actualNumber.text = number;
+
+                    await LocalStorage.set(
+                      KeyConstants.savedPhoneNumberKey,
+                      number,
+                    );
+
+                    DialPageController.instance.actualNumber = number;
+                  },
+
+                  leading: Obx(() {
+                    final isSelected = controller.savedNumber == number;
+
+                    return Checkbox(
+                      value: isSelected,
+                      onChanged: (_) async {
+                        controller.savedNumber = number;
+                        controller.actualNumber.text = number;
+
+                        await LocalStorage.set(
+                          KeyConstants.savedPhoneNumberKey,
+                          number,
+                        );
+
+                        DialPageController.instance.actualNumber = number;
+                      },
+                    );
+                  }),
+
+                  title: Text(
+                    number,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => controller.deleteSavedNumber(number),
+                  ),
                 ),
               );
-            },
-            listItemBuilder: (context, item, isSelected, onItemSelect) {
-              return ListTile(
-                minTileHeight: 0,
-                title: Text(
-                  item,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall!
-                      .copyWith(fontWeight: FontWeight.w300),
-                ),
-              );
-            },
-            onChanged: (value) async {
-              if (value != null) {
-                controller.actualNumber.text = value;
-                controller.savedNumber = value;
-                await LocalStorage.set(
-                  KeyConstants.savedPhoneNumberKey,
-                  value,
-                );
-                DialPageController.instance.actualNumber = value;
-              }
             },
           ),
 
           const SizedBox(height: 5),
-          Divider(),
+          const Divider(),
         ],
       );
     });

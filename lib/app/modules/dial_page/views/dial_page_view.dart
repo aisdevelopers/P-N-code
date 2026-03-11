@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:pn_code/app/modules/dial_page/views/widgets/screen_scan_overlay.dart';
 import '../../../utils/helper_functions.dart';
 import '../../../utils/themes/app_colors.dart';
 import '../../settings/models/animation_type_model.dart';
@@ -30,12 +29,7 @@ class DialPageView extends StatelessWidget {
           children: [
             DarkGlitchOverlay(
               isFlickering: controller.shouldGlitch,
-              child: ScanRevealOverlay(
-                trigger:
-                    controller.revealAnswer &&
-                    controller.animationType == AnimationsType.fadeAnimation,
-                child: const DialPadWidget(),
-              ),
+              child: const DialPadWidget(),
             ),
 
             // 🔒 LOCK OVERLAY
@@ -61,7 +55,7 @@ class DialPadWidget extends GetView<DialPageController> {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () async {
-        if (controller.mode == 'Time Mode') {
+        if (controller.mode == 'Time Mode' || controller.mode == 'Force Mode') {
           await controller.onDigitTap('');
         }
       },

@@ -24,6 +24,7 @@ class SettingsController extends GetxController {
     ModeModel(title: 'Time Mode'),
     ModeModel(title: 'Reverse Covert Mode'),
     ModeModel(title: 'Lock Mode'),
+    ModeModel(title: 'Force Mode'),
   ];
 
   final Rx<ModeModel> _selectedMode = Rx<ModeModel>(
@@ -33,7 +34,10 @@ class SettingsController extends GetxController {
   ModeModel get selectedMode => _selectedMode.value;
   set selectedMode(ModeModel value) => _selectedMode.value = value;
 
-  String? savedNumber;
+  final RxnString _savedNumber = RxnString();
+
+  String? get savedNumber => _savedNumber.value;
+  set savedNumber(String? value) => _savedNumber.value = value;
 
   final RxString _swipeDirection = SwipeDirection.topToBottom.name.obs;
   String get swipeDirection => _swipeDirection.value;
@@ -68,6 +72,10 @@ class SettingsController extends GetxController {
   set selectedAnimationDuration(AnimationDuration value) =>
       _selectedAnimationDuration.value = value;
 
+  final RxBool _addOneMinute = false.obs;
+  bool get addOneMinute => _addOneMinute.value;
+  set addOneMinute(bool value) => _addOneMinute.value = value;
+
   final Rx<TrickFeedbackMode> _selectedTrickFeedback =
       TrickFeedbackMode.vibrateOnly.obs;
 
@@ -90,7 +98,9 @@ class SettingsController extends GetxController {
   @override
   void onInit() {
     // STEP 1: Load saved phone number if exists
-    savedNumber = LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey);
+    _savedNumber.value = LocalStorage.get<String>(
+      KeyConstants.savedPhoneNumberKey,
+    );
     debugPrint('Loaded saved number: $savedNumber');
     actualNumber.text = savedNumber ?? '';
 
@@ -163,6 +173,9 @@ class SettingsController extends GetxController {
       );
     }
 
+    _addOneMinute.value =
+        LocalStorage.get<bool>(KeyConstants.addOneMinuteKey) ?? false;
+
     debugPrint("Loaded Trick Feedback: $selectedTrickFeedback");
 
     _initialNumber = actualNumber.text;
@@ -230,6 +243,8 @@ class SettingsController extends GetxController {
       // Step 6: Save Mode
       await saveMode();
 
+      await LocalStorage.set(KeyConstants.addOneMinuteKey, addOneMinute);
+
       await LocalStorage.set(
         KeyConstants.savedTrickFeedbackModeKey,
         selectedTrickFeedback.name,
@@ -243,6 +258,7 @@ class SettingsController extends GetxController {
         DialPageController.instance.revealAnswer = false;
         DialPageController.instance.hasRevealed = false;
         DialPageController.instance.shouldGlitch = false;
+          DialPageController.instance.fadeStage.value = 0;
         Get.back();
       }
       if (selectedMode.title != "Lock Mode") {
@@ -329,6 +345,12 @@ class SettingsController extends GetxController {
       // If you want DialPage to react:
       DialPageController.instance.mode = selectedMode.title;
 
+      // ⭐ Reset state when mode changes
+      DialPageController.instance.displayNumber = '';
+      DialPageController.instance.forceRevealIndex = 0;
+      DialPageController.instance.timeRevealIndex = 0;
+      DialPageController.instance.fadeStage.value = 0;
+
       debugPrint("Saved Mode: ${selectedMode.title}");
     } catch (e) {
       debugPrint("Ran into exception(saveMode): $e");
@@ -385,5 +407,23 @@ class SettingsController extends GetxController {
     _initialAnimationDuration = selectedAnimationDuration;
     _initialMode = selectedMode;
     _initialFeedback = selectedTrickFeedback;
+  }
+
+  Future<void> deleteSavedNumber(String number) async {
+    _savedNumbers.remove(number);
+
+    await LocalStorage.set(
+      KeyConstants.savedPhoneNumbersListKey,
+      _savedNumbers,
+    );
+
+    if (savedNumber == number) {
+      savedNumber = null;
+      actualNumber.clear();
+
+      await LocalStorage.remove(KeyConstants.savedPhoneNumberKey);
+
+      DialPageController.instance.actualNumber = '';
+    }
   }
 }

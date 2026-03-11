@@ -20,20 +20,20 @@ enum AnimationsType {
   @HiveField(4)
   fadeAnimation,
 
-  @HiveField(5)
-  scaleAnimation,
+  // @HiveField(5)
+  // scaleAnimation,
 
-  @HiveField(6)
-  slideAnimation,
+  // @HiveField(6)
+  // slideAnimation,
 
   @HiveField(7)
   waveAnimation,
 
-  @HiveField(8)
-  bounceAnimation,
+  // @HiveField(8)
+  // bounceAnimation,
 
-  @HiveField(9)
-  flickerAnimation,
+  // @HiveField(9)
+  // flickerAnimation,
 }
 
 extension AnimationsTypeTitle on AnimationsType {

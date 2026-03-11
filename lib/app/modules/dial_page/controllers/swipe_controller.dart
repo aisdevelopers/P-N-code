@@ -26,13 +26,19 @@ class SwipeController extends GetxController {
   }
 
   void onVerticalDragStart(DragStartDetails details) {
-    if (DialPageController.instance.mode == 'Time Mode') return;
+    if (DialPageController.instance.mode == 'Time Mode' ||
+        DialPageController.instance.mode == 'Force Mode') {
+      return;
+    }
 
     _startY = details.globalPosition.dy;
   }
 
   void onVerticalDragEnd(DragEndDetails details, BuildContext context) {
-    if (DialPageController.instance.mode == 'Time Mode') return;
+    if (DialPageController.instance.mode == 'Time Mode' ||
+        DialPageController.instance.mode == 'Force Mode') {
+      return;
+    }
 
     final screenHeight = MediaQuery.of(context).size.height;
     final threshold = screenHeight * thresholdFraction;
@@ -51,7 +57,10 @@ class SwipeController extends GetxController {
   double _lastY = 0.0;
 
   void onVerticalDragUpdate(DragUpdateDetails details) {
-    if (DialPageController.instance.mode == 'Time Mode') return;
+    if (DialPageController.instance.mode == 'Time Mode' ||
+        DialPageController.instance.mode == 'Force Mode') {
+      return;
+    }
 
     _lastY = details.globalPosition.dy;
   }

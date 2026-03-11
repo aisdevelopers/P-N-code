@@ -73,6 +73,26 @@ class SettingsView extends GetView<SettingsController> {
                             const SettingsModeDropdownWidget(),
                             const SizedBox(height: 20),
 
+                            Obx(() {
+                              if (controller.selectedMode.title !=
+                                  "Time Mode") {
+                                return const SizedBox();
+                              }
+
+                              return Row(
+                                children: [
+                                  Checkbox(
+                                    value: controller.addOneMinute,
+                                    onChanged: (value) {
+                                      controller.addOneMinute = value ?? false;
+                                    },
+                                  ),
+                                  const Text("Test: Add +1 Minute"),
+                                ],
+                              );
+                            }),
+                            SizedBox(height: 20),
+
                             // * Actual Number Field
                             TextFormField(
                               maxLength: 10,

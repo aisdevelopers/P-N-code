@@ -42,6 +42,8 @@ class DialPageController extends GetxController
 
   String _previousInput = '';
 
+  final RxInt fadeStage = 0.obs;
+
   // Map of digits and their letters
   final List<DialPadItem> dialPadItems = [
     DialPadItem(digit: '1', letters: ''),
@@ -98,6 +100,10 @@ class DialPageController extends GetxController
     _shouldGlitch.value = value;
   }
 
+  final RxInt _forceRevealIndex = 0.obs;
+  int get forceRevealIndex => _forceRevealIndex.value;
+  set forceRevealIndex(int value) => _forceRevealIndex.value = value;
+
   final RxBool _isLocked = false.obs;
   bool get isLocked => _isLocked.value;
   set isLocked(bool value) {
@@ -149,7 +155,6 @@ class DialPageController extends GetxController
   @override
   void onInit() {
     _loadNumbersFromICloud();
-
 
     // STEP 1: Loading the actual number from Local Storage
     actualNumber = LocalStorage.get(KeyConstants.savedPhoneNumberKey) ?? '';
@@ -219,7 +224,14 @@ class DialPageController extends GetxController
     try {
       if (mode == 'Time Mode') {
         if (timeBuffer.isEmpty) {
-          final now = DateTime.now();
+          DateTime now = DateTime.now();
+
+          bool addMinute =
+              LocalStorage.get<bool>(KeyConstants.addOneMinuteKey) ?? false;
+
+          if (addMinute) {
+            now = now.add(const Duration(minutes: 1));
+          }
 
           timeBuffer =
               "${now.day.toString().padLeft(2, '0')}"
@@ -231,10 +243,36 @@ class DialPageController extends GetxController
 
         if (timeRevealIndex >= timeBuffer.length) return;
 
+        revealAnswer = false;
+        fadeStage.value = 0;
+        shouldFlicker = false;
+        shouldGlitch = false;
+
         displayNumber += timeBuffer[timeRevealIndex];
         timeRevealIndex++;
 
-        revealAnswer = animationType != AnimationsType.simpleAnimation;
+        showBackSpaceButton = true;
+
+        return;
+      }
+
+      if (mode == 'Force Mode') {
+        if (actualNumber.isEmpty) {
+          Get.snackbar('Error', 'Please save number in the settings');
+          return;
+        }
+
+        if (forceRevealIndex >= actualNumber.length) return;
+
+        // disable animations
+        revealAnswer = false;
+        fadeStage.value = 0;
+        shouldFlicker = false;
+        shouldGlitch = false;
+
+        displayNumber += actualNumber[forceRevealIndex];
+        forceRevealIndex++;
+
         showBackSpaceButton = true;
 
         return;
@@ -246,12 +284,13 @@ class DialPageController extends GetxController
         return;
       }
 
-      if (displayNumber.length >= 10) return;
+      if (displayNumber.length >= 15) return;
 
       // 🔁 Reset reveal state whenever user types
       revealAnswer = false;
       shouldFlicker = false;
-      hasRevealed = false; // 👈 ADD THIS
+      hasRevealed = false;
+      fadeStage.value = 0; // 👈 ADD THIS
 
       timeRevealIndex = 0;
 
@@ -288,6 +327,7 @@ class DialPageController extends GetxController
   }
 
   void onDigitDelete() {
+    // TIME MODE DELETE
     if (mode == 'Time Mode') {
       if (displayNumber.isEmpty) return;
 
@@ -306,14 +346,39 @@ class DialPageController extends GetxController
       return;
     }
 
+    // FORCE MODE DELETE
+    if (mode == 'Force Mode') {
+      if (displayNumber.isEmpty) return;
+
+      displayNumber = displayNumber.substring(0, displayNumber.length - 1);
+
+      forceRevealIndex--;
+
+      if (forceRevealIndex < 0) {
+        forceRevealIndex = 0;
+      }
+
+      if (displayNumber.isEmpty) {
+        showBackSpaceButton = false;
+        forceRevealIndex = 0; // ⭐ reset fully
+      }
+
+      return;
+    }
+
+    // NORMAL MODES
     if (displayNumber.isNotEmpty) {
       revealAnswer = false;
       hasRevealed = false;
+      fadeStage.value = 0;
 
       displayNumber = displayNumber.substring(0, displayNumber.length - 1);
     }
 
-    if (displayNumber.isEmpty) showBackSpaceButton = false;
+    if (displayNumber.isEmpty) {
+      showBackSpaceButton = false;
+      fadeStage.value = 0;
+    }
   }
 
   String get displayText {
@@ -389,12 +454,7 @@ class DialPageController extends GetxController
         displayNumber = saved;
         showBackSpaceButton = true;
 
-        if (animationType == AnimationsType.scrambleAnimation) {
-          revealAnswer = true;
-          await _addAndSaveNumber(displayNumber);
-
-          await Future.delayed(const Duration(seconds: 1));
-        } else if (animationType == AnimationsType.glitchyAnimation) {
+        if (animationType == AnimationsType.glitchyAnimation) {
           if (!hasRevealed) {
             revealAnswer = true;
             hasRevealed = true;
@@ -407,6 +467,30 @@ class DialPageController extends GetxController
 
             shouldGlitch = false;
           }
+        }
+        //  else if (animationType == AnimationsType.flickerAnimation) {
+        //   revealAnswer = true;
+        //   await _addAndSaveNumber(displayNumber);
+        //   shouldFlicker = true;
+        //   await Future.delayed(const Duration(milliseconds: 1200));
+        //   shouldFlicker = false;
+        // }
+        else if (animationType == AnimationsType.fadeAnimation) {
+          fadeStage.value = 0;
+
+          await Future.delayed(const Duration(milliseconds: 20));
+
+          fadeStage.value = 1;
+
+          await Future.delayed(const Duration(milliseconds: 800));
+
+          displayNumber = saved;
+
+          await Future.delayed(const Duration(milliseconds: 800));
+
+          fadeStage.value = 2;
+
+          await _addAndSaveNumber(displayNumber);
         } else {
           revealAnswer = true;
           await _addAndSaveNumber(displayNumber);
@@ -431,19 +515,15 @@ class DialPageController extends GetxController
       final saved =
           LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
 
-      displayNumber = saved;
-      if (animationType == AnimationsType.scrambleAnimation) {
-        // FlickerController.instance.startFlicker();
-        revealAnswer = true;
-        await _addAndSaveNumber(displayNumber);
+      if (animationType != AnimationsType.fadeAnimation) {
+        displayNumber = saved;
+      }
 
-        await Future.delayed(const Duration(seconds: 1));
-        // FlickerController.instance.stopFlicker();
-      } else if (animationType == AnimationsType.glitchyAnimation) {
-        // ❗ Don't glitch again if already revealed
+      if (animationType == AnimationsType.glitchyAnimation) {
         if (!hasRevealed) {
           revealAnswer = true;
           hasRevealed = true;
+
           await _addAndSaveNumber(displayNumber);
 
           shouldGlitch = true;
@@ -452,6 +532,39 @@ class DialPageController extends GetxController
 
           shouldGlitch = false;
         }
+      }
+      //  else if (animationType == AnimationsType.flickerAnimation) {
+      //   revealAnswer = true;
+      //   await _addAndSaveNumber(displayNumber);
+      //   shouldFlicker = true;
+      //   await Future.delayed(const Duration(milliseconds: 1200));
+      //   shouldFlicker = false;
+      // }
+      else if (animationType == AnimationsType.fadeAnimation) {
+        fadeStage.value = 1; // digits go up
+
+        if (displayText.length == 10) {
+          await Future.delayed(const Duration(milliseconds: 800));
+        } else if (displayText.length == 11) {
+          await Future.delayed(const Duration(milliseconds: 980));
+        } else if (displayText.length == 12) {
+          await Future.delayed(const Duration(milliseconds: 1150));
+        } else if (displayText.length == 13) {
+          await Future.delayed(const Duration(milliseconds: 1320));
+        } else if (displayText.length == 14) {
+          await Future.delayed(const Duration(milliseconds: 1480));
+        } else if (displayText.length == 15) {
+          await Future.delayed(const Duration(milliseconds: 1630));
+        }
+
+        // fadeStage.value = 3; // blank
+
+        await Future.delayed(const Duration(milliseconds: 800));
+        displayNumber = saved;
+
+        fadeStage.value = 2; // reveal real digits
+
+        await _addAndSaveNumber(displayNumber);
       } else {
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);
@@ -478,15 +591,26 @@ class DialPageController extends GetxController
 
           shouldGlitch = false;
         }
-      } else if (animationType == AnimationsType.flickerAnimation) {
-        revealAnswer = true;
+      }
+      //  else if (animationType == AnimationsType.flickerAnimation) {
+      //   revealAnswer = true;
+      //   await _addAndSaveNumber(displayNumber);
+      //   shouldFlicker = true;
+      //   await Future.delayed(const Duration(milliseconds: 1200));
+      //   shouldFlicker = false;
+      // }
+      else if (animationType == AnimationsType.fadeAnimation) {
+        fadeStage.value = 1; // digits go up
+
+        await Future.delayed(const Duration(milliseconds: 800));
+
+        // fadeStage.value = 3; // blank
+
+        await Future.delayed(const Duration(milliseconds: 800));
+
+        fadeStage.value = 2; // reveal real digits
+
         await _addAndSaveNumber(displayNumber);
-
-        shouldFlicker = true;
-
-        await Future.delayed(const Duration(milliseconds: 1200));
-
-        shouldFlicker = false;
       } else {
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);

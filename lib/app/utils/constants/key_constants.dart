@@ -15,5 +15,5 @@ class KeyConstants {
   static const String savedModeKey = "saved_mode_key";
   static const String savedTrickFeedbackModeKey = 'saved_trick_feedback_mode';
   static const String savedPhoneNumbersListKey = "saved_phone_numbers_list";
-
+  static const String addOneMinuteKey = "add_one_minute_key";
 }

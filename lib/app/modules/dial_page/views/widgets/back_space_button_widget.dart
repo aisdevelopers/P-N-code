@@ -27,6 +27,7 @@ class BackSpaceButtonWidget extends GetView<DialPageController> {
                 controller.timeBuffer = '';
                 controller.showBackSpaceButton = false;
                 controller.revealAnswer = false;
+                controller.forceRevealIndex = 0;
               },
               icon: const Icon(Icons.backspace, size: 28),
               onPressed: DialPageController.instance.onDigitDelete,

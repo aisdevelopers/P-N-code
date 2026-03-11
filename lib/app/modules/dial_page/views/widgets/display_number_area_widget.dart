@@ -46,7 +46,9 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
             alignment: Alignment.center,
 
             child: Obx(() {
-              if (controller.revealAnswer || controller.mode == 'Time Mode') {
+              if (controller.mode == 'Time Mode' ||
+                  controller.animationType == AnimationsType.fadeAnimation ||
+                  controller.revealAnswer) {
                 if (controller.animationType ==
                     AnimationsType.simpleAnimation) {
                   return AutoSizeText(
@@ -88,138 +90,145 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
                       ],
                     ),
                   );
-                } // FADE
-                else if (controller.animationType ==
-                    AnimationsType.scaleAnimation) {
-                  return TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 900),
-                    curve: Curves.easeOutBack,
-                    builder: (context, value, child) {
-                      final scale = 0.3 + (value * 0.7);
-                      final blur = (1 - value) * 6;
-                      final yOffset = (1 - value) * 40;
-
-                      return Transform.translate(
-                        offset: Offset(0, yOffset),
-                        child: Transform.scale(
-                          scale: scale,
-                          child: ImageFiltered(
-                            imageFilter: ImageFilter.blur(
-                              sigmaX: blur,
-                              sigmaY: blur,
-                            ),
-                            child: Opacity(opacity: value, child: child),
-                          ),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      controller.displayNumber,
-                      style: TextStyle(
-                        fontSize: 34,
-                        color: HelperFunctions.isDarkMode(context)
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                    ),
-                  );
                 } else if (controller.animationType ==
-                    AnimationsType.slideAnimation) {
-                  return TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 750),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, value, child) {
-                      final yOffset = (1 - value) * 80;
-                      final blur = (1 - value) * 8;
-                      final opacity = value;
-
-                      return Transform.translate(
-                        offset: Offset(0, yOffset),
-                        child: ImageFiltered(
-                          imageFilter: ImageFilter.blur(
-                            sigmaX: blur,
-                            sigmaY: blur,
-                          ),
-                          child: Opacity(opacity: opacity, child: child),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      controller.displayNumber,
-                      style: TextStyle(
-                        fontSize: 34,
-                        color: HelperFunctions.isDarkMode(context)
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                    ),
-                  );
-                } else if (controller.animationType ==
-                    AnimationsType.waveAnimation) {
-                  return AnimatedTextKit(
-                    totalRepeatCount: 1,
-                    repeatForever: false,
-                    animatedTexts: [
-                      WavyAnimatedText(
-                        controller.displayNumber,
-                        textStyle: TextStyle(
-                          fontSize: 34,
-                          color: HelperFunctions.isDarkMode(context)
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                    ],
+                    AnimationsType.fadeAnimation) {
+                  return _DigitSequenceAnimation(
+                    stage: controller.fadeStage.value,
+                    oldDigits: controller.displayText,
+                    newDigits: controller.displayNumber,
                   );
                 }
-                // BOUNCE
+                // FADE
+                // else if (controller.animationType ==
+                //     AnimationsType.scaleAnimation) {
+                //   return TweenAnimationBuilder<double>(
+                //     tween: Tween(begin: 0.0, end: 1.0),
+                //     duration: const Duration(milliseconds: 900),
+                //     curve: Curves.easeOutBack,
+                //     builder: (context, value, child) {
+                //       final scale = 0.3 + (value * 0.7);
+                //       final blur = (1 - value) * 6;
+                //       final yOffset = (1 - value) * 40;
+                //       return Transform.translate(
+                //         offset: Offset(0, yOffset),
+                //         child: Transform.scale(
+                //           scale: scale,
+                //           child: ImageFiltered(
+                //             imageFilter: ImageFilter.blur(
+                //               sigmaX: blur,
+                //               sigmaY: blur,
+                //             ),
+                //             child: Opacity(opacity: value, child: child),
+                //           ),
+                //         ),
+                //       );
+                //     },
+                //     child: Text(
+                //       controller.displayNumber,
+                //       style: TextStyle(
+                //         fontSize: 34,
+                //         color: HelperFunctions.isDarkMode(context)
+                //             ? Colors.white
+                //             : Colors.black,
+                //       ),
+                //     ),
+                //   );
+                // } else if (controller.animationType ==
+                //     AnimationsType.slideAnimation) {
+                //   return TweenAnimationBuilder<double>(
+                //     tween: Tween(begin: 0.0, end: 1.0),
+                //     duration: const Duration(milliseconds: 750),
+                //     curve: Curves.easeOutCubic,
+                //     builder: (context, value, child) {
+                //       final yOffset = (1 - value) * 80;
+                //       final blur = (1 - value) * 8;
+                //       final opacity = value;
+                //       return Transform.translate(
+                //         offset: Offset(0, yOffset),
+                //         child: ImageFiltered(
+                //           imageFilter: ImageFilter.blur(
+                //             sigmaX: blur,
+                //             sigmaY: blur,
+                //           ),
+                //           child: Opacity(opacity: opacity, child: child),
+                //         ),
+                //       );
+                //     },
+                //     child: Text(
+                //       controller.displayNumber,
+                //       style: TextStyle(
+                //         fontSize: 34,
+                //         color: HelperFunctions.isDarkMode(context)
+                //             ? Colors.white
+                //             : Colors.black,
+                //       ),
+                //     ),
+                //   );
+                // } else if (controller.animationType ==
+                //     AnimationsType.waveAnimation) {
+                //   return AnimatedTextKit(
+                //     totalRepeatCount: 1,
+                //     repeatForever: false,
+                //     animatedTexts: [
+                //       WavyAnimatedText(
+                //         controller.displayNumber,
+                //         textStyle: TextStyle(
+                //           fontSize: 34,
+                //           color: HelperFunctions.isDarkMode(context)
+                //               ? Colors.white
+                //               : Colors.black,
+                //         ),
+                //       ),
+                //     ],
+                //   );
+                // }
+                // // BOUNCE
+                // else if (controller.animationType ==
+                //     AnimationsType.bounceAnimation) {
+                //   return TweenAnimationBuilder(
+                //     tween: Tween(begin: 0.8, end: 1.0),
+                //     curve: Curves.elasticOut,
+                //     duration: const Duration(seconds: 1),
+                //     builder: (context, value, child) {
+                //       return Transform.scale(scale: value, child: child);
+                //     },
+                //     child: Text(
+                //       controller.displayNumber,
+                //       style: TextStyle(
+                //         fontSize: 34,
+                //         color: HelperFunctions.isDarkMode(context)
+                //             ? Colors.white
+                //             : Colors.black,
+                //       ),
+                //     ),
+                //   );
+                // }
+                // // FLICKER
+                // else if (controller.animationType ==
+                //     AnimationsType.flickerAnimation) {
+                //   return Obx(() {
+                //     return TweenAnimationBuilder(
+                //       tween: Tween(
+                //         begin: 1.0,
+                //         end: controller.shouldFlicker ? 0.2 : 1.0,
+                //       ),
+                //       duration: const Duration(milliseconds: 80),
+                //       builder: (context, value, child) {
+                //         return Opacity(opacity: value, child: child);
+                //       },
+                //       child: Text(
+                //         controller.displayNumber,
+                //         style: TextStyle(
+                //           fontSize: 34,
+                //           color: HelperFunctions.isDarkMode(context)
+                //               ? Colors.white
+                //               : Colors.black,
+                //         ),
+                //       ),
+                //     );
+                //   });
+                // }
                 else if (controller.animationType ==
-                    AnimationsType.bounceAnimation) {
-                  return TweenAnimationBuilder(
-                    tween: Tween(begin: 0.8, end: 1.0),
-                    curve: Curves.elasticOut,
-                    duration: const Duration(seconds: 1),
-                    builder: (context, value, child) {
-                      return Transform.scale(scale: value, child: child);
-                    },
-                    child: Text(
-                      controller.displayNumber,
-                      style: TextStyle(
-                        fontSize: 34,
-                        color: HelperFunctions.isDarkMode(context)
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                    ),
-                  );
-                }
-                // FLICKER
-                else if (controller.animationType ==
-                    AnimationsType.flickerAnimation) {
-                  return Obx(() {
-                    return TweenAnimationBuilder(
-                      tween: Tween(
-                        begin: 1.0,
-                        end: controller.shouldFlicker ? 0.2 : 1.0,
-                      ),
-                      duration: const Duration(milliseconds: 80),
-                      builder: (context, value, child) {
-                        return Opacity(opacity: value, child: child);
-                      },
-                      child: Text(
-                        controller.displayNumber,
-                        style: TextStyle(
-                          fontSize: 34,
-                          color: HelperFunctions.isDarkMode(context)
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                    );
-                  });
-                } else if (controller.animationType ==
                     AnimationsType.scrambleAnimation) {
                   // Show Animated Text Widget
                   return DefaultTextStyle(
@@ -300,6 +309,116 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
             }),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DigitSequenceAnimation extends StatelessWidget {
+  final int stage;
+  final String oldDigits;
+  final String newDigits;
+
+  const _DigitSequenceAnimation({
+    required this.stage,
+    required this.oldDigits,
+    required this.newDigits,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final digits = stage == 2
+        ? newDigits.split('') // real typed digits
+        : oldDigits.split(''); // fake digits (saved number pattern)
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        digits.length,
+        (i) => _DigitAnimator(digit: digits[i], index: i, stage: stage),
+      ),
+    );
+  }
+}
+
+class _DigitAnimator extends StatefulWidget {
+  final String digit;
+  final int index;
+  final int stage;
+
+  const _DigitAnimator({
+    required this.digit,
+    required this.index,
+    required this.stage,
+  });
+
+  @override
+  State<_DigitAnimator> createState() => _DigitAnimatorState();
+}
+
+class _DigitAnimatorState extends State<_DigitAnimator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController controller;
+  late Animation<double> offset;
+  late Animation<double> opacity;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+
+    offset = Tween<double>(
+      begin: 0,
+      end: -200,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+
+    opacity = Tween<double>(begin: 1, end: 0).animate(controller);
+  }
+
+  @override
+  void didUpdateWidget(covariant _DigitAnimator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.stage == 1) {
+      Future.delayed(Duration(milliseconds: widget.index * 180), () {
+        if (mounted) controller.forward();
+      });
+    }
+
+    if (widget.stage == 2) {
+      controller.value = 1;
+
+      Future.delayed(Duration(milliseconds: widget.index * 180), () {
+        if (mounted) controller.reverse();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, offset.value),
+          child: Opacity(
+            opacity: widget.stage == 1 ? opacity.value : 1,
+            child: child,
+          ),
+        );
+      },
+      child: Text(
+        widget.digit,
+        style: TextStyle(
+          fontSize: 34,
+          color: HelperFunctions.isDarkMode(context)
+              ? Colors.white
+              : Colors.black,
+        ),
       ),
     );
   }

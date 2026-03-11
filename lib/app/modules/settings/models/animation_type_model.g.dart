@@ -23,16 +23,8 @@ class AnimationsTypeAdapter extends TypeAdapter<AnimationsType> {
         return AnimationsType.typewriterAnimation;
       case 4:
         return AnimationsType.fadeAnimation;
-      case 5:
-        return AnimationsType.scaleAnimation;
-      case 6:
-        return AnimationsType.slideAnimation;
       case 7:
         return AnimationsType.waveAnimation;
-      case 8:
-        return AnimationsType.bounceAnimation;
-      case 9:
-        return AnimationsType.flickerAnimation;
       default:
         return AnimationsType.simpleAnimation;
     }
@@ -56,20 +48,8 @@ class AnimationsTypeAdapter extends TypeAdapter<AnimationsType> {
       case AnimationsType.fadeAnimation:
         writer.writeByte(4);
         break;
-      case AnimationsType.scaleAnimation:
-        writer.writeByte(5);
-        break;
-      case AnimationsType.slideAnimation:
-        writer.writeByte(6);
-        break;
       case AnimationsType.waveAnimation:
         writer.writeByte(7);
-        break;
-      case AnimationsType.bounceAnimation:
-        writer.writeByte(8);
-        break;
-      case AnimationsType.flickerAnimation:
-        writer.writeByte(9);
         break;
     }
   }
