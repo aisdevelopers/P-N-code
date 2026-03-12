@@ -467,15 +467,18 @@ class DialPageController extends GetxController
 
             shouldGlitch = false;
           }
-        }
-        //  else if (animationType == AnimationsType.flickerAnimation) {
-        //   revealAnswer = true;
-        //   await _addAndSaveNumber(displayNumber);
-        //   shouldFlicker = true;
-        //   await Future.delayed(const Duration(milliseconds: 1200));
-        //   shouldFlicker = false;
-        // }
-        else if (animationType == AnimationsType.fadeAnimation) {
+        } else if (animationType == AnimationsType.scaleAnimation) {
+          fadeStage.value = 1; // split old number
+
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          // displayNumber = saved;
+          fadeStage.value = 2; // bring new halves
+
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          fadeStage.value = 3;
+        } else if (animationType == AnimationsType.fadeAnimation) {
           fadeStage.value = 0;
 
           await Future.delayed(const Duration(milliseconds: 20));
@@ -515,7 +518,8 @@ class DialPageController extends GetxController
       final saved =
           LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
 
-      if (animationType != AnimationsType.fadeAnimation) {
+      if (animationType != AnimationsType.fadeAnimation &&
+          animationType != AnimationsType.scaleAnimation) {
         displayNumber = saved;
       }
 
@@ -532,15 +536,21 @@ class DialPageController extends GetxController
 
           shouldGlitch = false;
         }
-      }
-      //  else if (animationType == AnimationsType.flickerAnimation) {
-      //   revealAnswer = true;
-      //   await _addAndSaveNumber(displayNumber);
-      //   shouldFlicker = true;
-      //   await Future.delayed(const Duration(milliseconds: 1200));
-      //   shouldFlicker = false;
-      // }
-      else if (animationType == AnimationsType.fadeAnimation) {
+      } else if (animationType == AnimationsType.scaleAnimation) {
+        fadeStage.value = 1; // split old number
+
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        displayNumber = saved;
+
+        fadeStage.value = 2; // bring new halves
+
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        fadeStage.value = 3; // final merged
+
+        await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.fadeAnimation) {
         fadeStage.value = 1; // digits go up
 
         if (displayText.length == 10) {
@@ -591,15 +601,21 @@ class DialPageController extends GetxController
 
           shouldGlitch = false;
         }
-      }
-      //  else if (animationType == AnimationsType.flickerAnimation) {
-      //   revealAnswer = true;
-      //   await _addAndSaveNumber(displayNumber);
-      //   shouldFlicker = true;
-      //   await Future.delayed(const Duration(milliseconds: 1200));
-      //   shouldFlicker = false;
-      // }
-      else if (animationType == AnimationsType.fadeAnimation) {
+      } else if (animationType == AnimationsType.scaleAnimation) {
+        fadeStage.value = 1; // split old number
+
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // displayNumber = saved;
+
+        fadeStage.value = 2; // bring new halves
+
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        fadeStage.value = 3; // final merged
+
+        await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.fadeAnimation) {
         fadeStage.value = 1; // digits go up
 
         await Future.delayed(const Duration(milliseconds: 800));

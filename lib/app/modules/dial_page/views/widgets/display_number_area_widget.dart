@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -48,6 +46,8 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
             child: Obx(() {
               if (controller.mode == 'Time Mode' ||
                   controller.animationType == AnimationsType.fadeAnimation ||
+                  controller.animationType == AnimationsType.scaleAnimation ||
+                  controller.animationType == AnimationsType.slideAnimation ||
                   controller.revealAnswer) {
                 if (controller.animationType ==
                     AnimationsType.simpleAnimation) {
@@ -97,138 +97,31 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
                     oldDigits: controller.displayText,
                     newDigits: controller.displayNumber,
                   );
-                }
-                // FADE
-                // else if (controller.animationType ==
-                //     AnimationsType.scaleAnimation) {
-                //   return TweenAnimationBuilder<double>(
-                //     tween: Tween(begin: 0.0, end: 1.0),
-                //     duration: const Duration(milliseconds: 900),
-                //     curve: Curves.easeOutBack,
-                //     builder: (context, value, child) {
-                //       final scale = 0.3 + (value * 0.7);
-                //       final blur = (1 - value) * 6;
-                //       final yOffset = (1 - value) * 40;
-                //       return Transform.translate(
-                //         offset: Offset(0, yOffset),
-                //         child: Transform.scale(
-                //           scale: scale,
-                //           child: ImageFiltered(
-                //             imageFilter: ImageFilter.blur(
-                //               sigmaX: blur,
-                //               sigmaY: blur,
-                //             ),
-                //             child: Opacity(opacity: value, child: child),
-                //           ),
-                //         ),
-                //       );
-                //     },
-                //     child: Text(
-                //       controller.displayNumber,
-                //       style: TextStyle(
-                //         fontSize: 34,
-                //         color: HelperFunctions.isDarkMode(context)
-                //             ? Colors.white
-                //             : Colors.black,
-                //       ),
-                //     ),
-                //   );
-                // } else if (controller.animationType ==
-                //     AnimationsType.slideAnimation) {
-                //   return TweenAnimationBuilder<double>(
-                //     tween: Tween(begin: 0.0, end: 1.0),
-                //     duration: const Duration(milliseconds: 750),
-                //     curve: Curves.easeOutCubic,
-                //     builder: (context, value, child) {
-                //       final yOffset = (1 - value) * 80;
-                //       final blur = (1 - value) * 8;
-                //       final opacity = value;
-                //       return Transform.translate(
-                //         offset: Offset(0, yOffset),
-                //         child: ImageFiltered(
-                //           imageFilter: ImageFilter.blur(
-                //             sigmaX: blur,
-                //             sigmaY: blur,
-                //           ),
-                //           child: Opacity(opacity: opacity, child: child),
-                //         ),
-                //       );
-                //     },
-                //     child: Text(
-                //       controller.displayNumber,
-                //       style: TextStyle(
-                //         fontSize: 34,
-                //         color: HelperFunctions.isDarkMode(context)
-                //             ? Colors.white
-                //             : Colors.black,
-                //       ),
-                //     ),
-                //   );
-                // } else if (controller.animationType ==
-                //     AnimationsType.waveAnimation) {
-                //   return AnimatedTextKit(
-                //     totalRepeatCount: 1,
-                //     repeatForever: false,
-                //     animatedTexts: [
-                //       WavyAnimatedText(
-                //         controller.displayNumber,
-                //         textStyle: TextStyle(
-                //           fontSize: 34,
-                //           color: HelperFunctions.isDarkMode(context)
-                //               ? Colors.white
-                //               : Colors.black,
-                //         ),
-                //       ),
-                //     ],
-                //   );
-                // }
-                // // BOUNCE
-                // else if (controller.animationType ==
-                //     AnimationsType.bounceAnimation) {
-                //   return TweenAnimationBuilder(
-                //     tween: Tween(begin: 0.8, end: 1.0),
-                //     curve: Curves.elasticOut,
-                //     duration: const Duration(seconds: 1),
-                //     builder: (context, value, child) {
-                //       return Transform.scale(scale: value, child: child);
-                //     },
-                //     child: Text(
-                //       controller.displayNumber,
-                //       style: TextStyle(
-                //         fontSize: 34,
-                //         color: HelperFunctions.isDarkMode(context)
-                //             ? Colors.white
-                //             : Colors.black,
-                //       ),
-                //     ),
-                //   );
-                // }
-                // // FLICKER
-                // else if (controller.animationType ==
-                //     AnimationsType.flickerAnimation) {
-                //   return Obx(() {
-                //     return TweenAnimationBuilder(
-                //       tween: Tween(
-                //         begin: 1.0,
-                //         end: controller.shouldFlicker ? 0.2 : 1.0,
-                //       ),
-                //       duration: const Duration(milliseconds: 80),
-                //       builder: (context, value, child) {
-                //         return Opacity(opacity: value, child: child);
-                //       },
-                //       child: Text(
-                //         controller.displayNumber,
-                //         style: TextStyle(
-                //           fontSize: 34,
-                //           color: HelperFunctions.isDarkMode(context)
-                //               ? Colors.white
-                //               : Colors.black,
-                //         ),
-                //       ),
-                //     );
-                //   });
-                // }
-                else if (controller.animationType ==
+                } else if (controller.animationType ==
+                    AnimationsType.scaleAnimation) {
+                  return _SplitRevealAnimation(
+                    stage: controller.fadeStage.value,
+                    oldText: controller.displayText,
+                    newText: controller.displayNumber,
+                  );
+                } else if (controller.animationType ==
+                    AnimationsType.waveAnimation) {
+                  return AnimatedTextKit(
+                    totalRepeatCount: 1,
+                    repeatForever: false,
+                    animatedTexts: [
+                      WavyAnimatedText(
+                        controller.displayNumber,
+                        textStyle: TextStyle(
+                          fontSize: 34,
+                          color: HelperFunctions.isDarkMode(context)
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
+                    ],
+                  );
+                } else if (controller.animationType ==
                     AnimationsType.scrambleAnimation) {
                   // Show Animated Text Widget
                   return DefaultTextStyle(
@@ -413,6 +306,113 @@ class _DigitAnimatorState extends State<_DigitAnimator>
       },
       child: Text(
         widget.digit,
+        style: TextStyle(
+          fontSize: 34,
+          color: HelperFunctions.isDarkMode(context)
+              ? Colors.white
+              : Colors.black,
+        ),
+      ),
+    );
+  }
+}
+
+class _SplitRevealAnimation extends StatelessWidget {
+  final int stage;
+  final String oldText;
+  final String newText;
+
+  const _SplitRevealAnimation({
+    required this.stage,
+    required this.oldText,
+    required this.newText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final display = stage < 2 ? oldText : newText;
+
+    int mid = (display.length / 2).ceil();
+
+    String left = display.substring(0, mid);
+    String right = display.substring(mid);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _HalfAnimator(text: left, isLeft: true, stage: stage),
+        _HalfAnimator(text: right, isLeft: false, stage: stage),
+      ],
+    );
+  }
+}
+
+class _HalfAnimator extends StatefulWidget {
+  final String text;
+  final bool isLeft;
+  final int stage;
+
+  const _HalfAnimator({
+    required this.text,
+    required this.isLeft,
+    required this.stage,
+  });
+
+  @override
+  State<_HalfAnimator> createState() => _HalfAnimatorState();
+}
+
+class _HalfAnimatorState extends State<_HalfAnimator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController controller;
+  late Animation<double> slide;
+  late Animation<double> opacity;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 7),
+    );
+
+    slide = Tween<double>(
+      begin: 0,
+      end: widget.isLeft ? -3000 : 3000,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+
+    opacity = Tween<double>(begin: 1, end: 0).animate(controller);
+  }
+
+  @override
+  void didUpdateWidget(covariant _HalfAnimator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.stage == 1) {
+      controller.forward();
+    }
+
+    if (widget.stage == 2) {
+      controller.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(slide.value, 0),
+          child: Opacity(
+            opacity: widget.stage == 1 ? opacity.value : 1,
+            child: child,
+          ),
+        );
+      },
+      child: Text(
+        widget.text,
         style: TextStyle(
           fontSize: 34,
           color: HelperFunctions.isDarkMode(context)
