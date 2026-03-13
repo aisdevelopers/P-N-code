@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pn_code/app/modules/dial_page/models/dial_entry_model.dart';
 import 'package:pn_code/app/utils/services/icloud_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DialNumberHistoryController extends GetxController {
   final RxList<DialEntry> enteredNumbers = <DialEntry>[].obs;
@@ -42,5 +43,15 @@ class DialNumberHistoryController extends GetxController {
     debugPrint(
       "Controller restored: ${enteredNumbers.length} and ${enteredNumbers.map((e) => e.number).toList()} and ${enteredNumbers.map((e) => e.dateTime).toList()}",
     );
+  }
+
+  Future<void> launchCall(String number) async {
+    final Uri uri = Uri(scheme: 'tel', path: number);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      Get.snackbar("Error", "Could not launch dialer");
+    }
   }
 }

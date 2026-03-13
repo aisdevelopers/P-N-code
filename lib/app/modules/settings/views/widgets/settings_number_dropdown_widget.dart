@@ -69,7 +69,30 @@ class SettingsNumberDropdownWidget extends GetView<SettingsController> {
 
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    onPressed: () => controller.deleteSavedNumber(number),
+                    onPressed: () async {
+                      final confirm = await Get.dialog<bool>(
+                        AlertDialog(
+                          title: const Text("Delete Number"),
+                          content: Text(
+                            "Are you sure you want to delete $number?",
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Get.back(result: false),
+                              child: const Text("No"),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Get.back(result: true),
+                              child: const Text("Yes"),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        controller.deleteSavedNumber(number);
+                      }
+                    },
                   ),
                 ),
               );

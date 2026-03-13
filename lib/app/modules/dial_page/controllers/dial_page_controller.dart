@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pn_code/app/modules/dial_page/models/dial_entry_model.dart';
 import 'package:pn_code/app/utils/services/icloud_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../utils/constants/key_constants.dart';
 import '../../../utils/services/local_storage.dart';
 import '../../settings/controllers/settings_controller.dart';
@@ -141,6 +142,16 @@ class DialPageController extends GetxController
     _shouldFlicker.value = value;
     update();
   }
+
+  // final RxBool _isSlideAnimating = false.obs;
+  // bool get isSlideAnimating => _isSlideAnimating.value;
+  // set isSlideAnimating(bool v) => _isSlideAnimating.value = v;
+
+  // final RxString _scrambleText = ''.obs;
+  // String get scrambleText => _scrambleText.value;
+  // set scrambleText(String v) => _scrambleText.value = v;
+
+  // Timer? scrambleTimer;
 
   final Rx<TrickFeedbackMode> _trickFeedbackMode =
       TrickFeedbackMode.vibrateOnly.obs;
@@ -494,6 +505,16 @@ class DialPageController extends GetxController
           fadeStage.value = 2;
 
           await _addAndSaveNumber(displayNumber);
+        } else if (animationType == AnimationsType.slideAnimation) {
+          fadeStage.value = 1;
+
+          await Future.delayed(const Duration(milliseconds: 450));
+
+          fadeStage.value = 2;
+
+          await Future.delayed(const Duration(seconds: 2));
+
+          fadeStage.value = 3;
         } else {
           revealAnswer = true;
           await _addAndSaveNumber(displayNumber);
@@ -519,7 +540,8 @@ class DialPageController extends GetxController
           LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
 
       if (animationType != AnimationsType.fadeAnimation &&
-          animationType != AnimationsType.scaleAnimation) {
+          animationType != AnimationsType.scaleAnimation &&
+          animationType != AnimationsType.slideAnimation) {
         displayNumber = saved;
       }
 
@@ -575,6 +597,20 @@ class DialPageController extends GetxController
         fadeStage.value = 2; // reveal real digits
 
         await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.slideAnimation) {
+        fadeStage.value = 1;
+
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        displayNumber = saved;
+
+        fadeStage.value = 2;
+
+        await Future.delayed(const Duration(seconds: 2));
+
+        fadeStage.value = 3;
+
+        await _addAndSaveNumber(displayNumber);
       } else {
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);
@@ -625,6 +661,18 @@ class DialPageController extends GetxController
         await Future.delayed(const Duration(milliseconds: 800));
 
         fadeStage.value = 2; // reveal real digits
+
+        await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.slideAnimation) {
+        fadeStage.value = 1;
+
+        await Future.delayed(const Duration(milliseconds: 450));
+
+        fadeStage.value = 2;
+
+        await Future.delayed(const Duration(seconds: 2));
+
+        fadeStage.value = 3;
 
         await _addAndSaveNumber(displayNumber);
       } else {
@@ -711,5 +759,22 @@ class DialPageController extends GetxController
     );
 
     await _saveNumbersToICloud();
+  }
+
+  Future<void> callCurrentNumber() async {
+    String number = displayNumber;
+
+    if (number.isEmpty) {
+      Get.snackbar("Error", "No number to call");
+      return;
+    }
+
+    final Uri uri = Uri(scheme: 'tel', path: number);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      Get.snackbar("Error", "Could not launch dialer");
+    }
   }
 }

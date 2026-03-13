@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -69,6 +72,13 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
                           ? 28
                           : 34,
                     ),
+                  );
+                } else if (controller.animationType ==
+                    AnimationsType.slideAnimation) {
+                  return _SlideRevealAnimation(
+                    stage: controller.fadeStage.value,
+                    oldText: controller.displayText,
+                    newText: controller.displayNumber,
                   );
                 } else if (controller.animationType ==
                     AnimationsType.typewriterAnimation) {
@@ -419,6 +429,94 @@ class _HalfAnimatorState extends State<_HalfAnimator>
               ? Colors.white
               : Colors.black,
         ),
+      ),
+    );
+  }
+}
+
+class _SlideRevealAnimation extends StatefulWidget {
+  final int stage;
+  final String oldText;
+  final String newText;
+
+  const _SlideRevealAnimation({
+    required this.stage,
+    required this.oldText,
+    required this.newText,
+  });
+
+  @override
+  State<_SlideRevealAnimation> createState() => _SlideRevealAnimationState();
+}
+
+class _SlideRevealAnimationState extends State<_SlideRevealAnimation> {
+  Timer? timer;
+  String scramble = '';
+
+  final chars = ['#', '@', '%', '&', '*', '\$', '!', '?'];
+
+  String generate(int length) {
+    final rand = Random();
+    return List.generate(
+      length,
+      (_) => chars[rand.nextInt(chars.length)],
+    ).join();
+  }
+
+  void startScramble(int length) {
+    timer?.cancel();
+
+    timer = Timer.periodic(const Duration(milliseconds: 60), (_) {
+      if (!mounted) return;
+
+      setState(() {
+        scramble = generate(length);
+      });
+    });
+  }
+
+  void stopScramble() {
+    timer?.cancel();
+  }
+
+  @override
+  void didUpdateWidget(covariant _SlideRevealAnimation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.stage == 2) {
+      startScramble(widget.oldText.length);
+    }
+
+    if (widget.stage == 3) {
+      stopScramble();
+    }
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String display;
+
+    if (widget.stage == 2) {
+      display = scramble;
+    } else if (widget.stage == 3) {
+      display = widget.newText;
+    } else {
+      display = widget.oldText;
+    }
+
+    return Text(
+      display,
+      style: TextStyle(
+        fontSize: 34,
+        color: HelperFunctions.isDarkMode(context)
+            ? Colors.white
+            : Colors.black,
       ),
     );
   }

@@ -95,7 +95,7 @@ class SettingsView extends GetView<SettingsController> {
 
                             // * Actual Number Field
                             TextFormField(
-                              maxLength: 10,
+                              maxLength: 15,
                               controller: controller.actualNumber,
                               onTapOutside: (event) =>
                                   FocusScope.of(context).unfocus(),
@@ -115,14 +115,16 @@ class SettingsView extends GetView<SettingsController> {
                               ),
                               keyboardType: TextInputType.phone,
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your phone number';
-                                } else if (value.length != 10) {
-                                  return 'Please enter a valid phone number';
-                                } else if (!RegExp(
-                                  r'^[0-9]+$',
-                                ).hasMatch(value)) {
-                                  return 'Please enter a valid phone number';
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Enter at least 1 digit';
+                                }
+
+                                if (value.length > 15) {
+                                  return 'Maximum 15 digits allowed';
+                                }
+
+                                if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                                  return 'Only digits allowed';
                                 }
 
                                 return null;

@@ -22,6 +22,9 @@ class DialNumberHistoryView extends GetView<DialNumberHistoryController> {
               title: Text(item.number, style: const TextStyle(fontSize: 18)),
               subtitle: Text(item.dateTime.toString()),
               leading: const Icon(Icons.phone),
+
+              // trailing: const Icon(Icons.call),
+              onTap: () => controller.launchCall(item.number),
             );
           },
         );

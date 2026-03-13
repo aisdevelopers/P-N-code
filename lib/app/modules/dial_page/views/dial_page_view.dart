@@ -127,24 +127,27 @@ class DialPadWidget extends GetView<DialPageController> {
                       ),
 
                       // Call button (center)
-                      Container(
-                        width: 75,
-                        height: 75,
-                        decoration: BoxDecoration(
-                          color: Color(0xFF006320),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            width: 0.5,
-                            color: Colors.lightGreen,
+                      GestureDetector(
+                        onTap: controller.callCurrentNumber,
+                        child: Container(
+                          width: 75,
+                          height: 75,
+                          decoration: BoxDecoration(
+                            color: Color(0xFF006320),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              width: 0.5,
+                              color: Colors.lightGreen,
+                            ),
                           ),
-                        ),
-                        padding: const EdgeInsets.all(25),
-                        child: Image.asset(
-                          ImgConstants.callIcon,
-                          fit: BoxFit.contain,
-                          height: 20,
-                          width: 20,
-                          color: Colors.white,
+                          padding: const EdgeInsets.all(25),
+                          child: Image.asset(
+                            ImgConstants.callIcon,
+                            fit: BoxFit.contain,
+                            height: 20,
+                            width: 20,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
 
