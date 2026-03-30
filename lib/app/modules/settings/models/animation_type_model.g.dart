@@ -33,6 +33,8 @@ class AnimationsTypeAdapter extends TypeAdapter<AnimationsType> {
         return AnimationsType.slotMachineAnimation;
       case 9:
         return AnimationsType.dataStreamAnimation;
+      case 10:
+        return AnimationsType.digitShuffleDeckAnimation;
       default:
         return AnimationsType.simpleAnimation;
     }
@@ -70,6 +72,9 @@ class AnimationsTypeAdapter extends TypeAdapter<AnimationsType> {
         break;
       case AnimationsType.dataStreamAnimation:
         writer.writeByte(9);
+        break;
+      case AnimationsType.digitShuffleDeckAnimation:
+        writer.writeByte(10);
         break;
     }
   }

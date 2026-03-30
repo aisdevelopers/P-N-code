@@ -35,8 +35,8 @@ enum AnimationsType {
   @HiveField(9)
   dataStreamAnimation,
 
-  // @HiveField(10)
-  // bounceAnimation,
+  @HiveField(10)
+  digitShuffleDeckAnimation,
 
 }
 
