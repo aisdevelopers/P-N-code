@@ -34,24 +34,6 @@ import AudioToolbox
         }
     }
 
-    // ===============================
-    // ☁️ iCloud Channel
-    // ===============================
-    let icloudChannel = FlutterMethodChannel(
-        name: "icloud_channel",
-        binaryMessenger: controller.binaryMessenger
-    )
-
-    icloudChannel.setMethodCallHandler { (call, result) in
-        if call.method == "getICloudPath" {
-            if let url = FileManager.default.url(forUbiquityContainerIdentifier: nil) {
-                result(url.path)
-            } else {
-                result(nil as String?)
-            }
-        }
-    }
-
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

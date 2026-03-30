@@ -515,6 +515,17 @@ class DialPageController extends GetxController
           await Future.delayed(const Duration(seconds: 2));
 
           fadeStage.value = 3;
+        } else if (animationType == AnimationsType.slotMachineAnimation) {
+          fadeStage.value = 1; // Start spinning fast
+
+          await Future.delayed(const Duration(milliseconds: 1000)); // Chaos
+          fadeStage.value = 2; // Begin left-to-right locking
+          displayNumber = saved; // Set real target before it finishes stopping
+
+          await Future.delayed(Duration(milliseconds: (saved.length * 150) + 200));
+          fadeStage.value = 3; // Fully locked
+          
+          await _addAndSaveNumber(displayNumber);
         } else {
           revealAnswer = true;
           await _addAndSaveNumber(displayNumber);
@@ -611,6 +622,17 @@ class DialPageController extends GetxController
         fadeStage.value = 3;
 
         await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.slotMachineAnimation) {
+        fadeStage.value = 1;
+
+        await Future.delayed(const Duration(milliseconds: 1000));
+        fadeStage.value = 2;
+        displayNumber = saved;
+
+        await Future.delayed(Duration(milliseconds: (saved.length * 150) + 200));
+        fadeStage.value = 3;
+
+        await _addAndSaveNumber(displayNumber);
       } else {
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);
@@ -672,6 +694,16 @@ class DialPageController extends GetxController
 
         await Future.delayed(const Duration(seconds: 2));
 
+        fadeStage.value = 3;
+
+        await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.slotMachineAnimation) {
+        fadeStage.value = 1;
+
+        await Future.delayed(const Duration(milliseconds: 1000));
+        fadeStage.value = 2;
+
+        await Future.delayed(Duration(milliseconds: (displayNumber.length * 150) + 200));
         fadeStage.value = 3;
 
         await _addAndSaveNumber(displayNumber);

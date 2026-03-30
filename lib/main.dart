@@ -11,6 +11,7 @@ import 'app/utils/themes/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint("Initializing PN Code with stable engine...");
 
   await Hive.initFlutter();
 

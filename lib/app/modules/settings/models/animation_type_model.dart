@@ -29,11 +29,12 @@ enum AnimationsType {
   @HiveField(7)
   waveAnimation,
 
-  // @HiveField(8)
-  // bounceAnimation,
+  @HiveField(8)
+  slotMachineAnimation,
 
   // @HiveField(9)
-  // flickerAnimation,
+  // bounceAnimation,
+
 }
 
 extension AnimationsTypeTitle on AnimationsType {
