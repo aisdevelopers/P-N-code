@@ -53,9 +53,14 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
                   controller.animationType == AnimationsType.fadeAnimation ||
                   controller.animationType == AnimationsType.scaleAnimation ||
                   controller.animationType == AnimationsType.slideAnimation ||
-                  controller.animationType == AnimationsType.slotMachineAnimation ||
-                  controller.animationType == AnimationsType.scrambleAnimation ||
-                  controller.animationType == AnimationsType.typewriterAnimation ||
+                  controller.animationType ==
+                      AnimationsType.slotMachineAnimation ||
+                  controller.animationType ==
+                      AnimationsType.dataStreamAnimation ||
+                  controller.animationType ==
+                      AnimationsType.scrambleAnimation ||
+                  controller.animationType ==
+                      AnimationsType.typewriterAnimation ||
                   controller.animationType == AnimationsType.waveAnimation ||
                   controller.revealAnswer) {
                 if (controller.animationType ==
@@ -168,6 +173,13 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
                         ),
                       ],
                     ),
+                  );
+                } else if (controller.animationType ==
+                    AnimationsType.dataStreamAnimation) {
+                  return _DataStreamRevealAnimation(
+                    stage: controller.fadeStage.value,
+                    oldText: controller.displayText,
+                    newText: controller.displayNumber,
                   );
                 } else if (controller.animationType ==
                     AnimationsType.slotMachineAnimation) {
@@ -558,18 +570,13 @@ class _SlotMachineRevealAnimation extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(
-          maxLength,
-          (i) {
-            String digit = i < currentTargetText.length ? currentTargetText[i] : "";
+        children: List.generate(maxLength, (i) {
+          String digit = i < currentTargetText.length
+              ? currentTargetText[i]
+              : "";
 
-            return _SlotMachineReel(
-              digit: digit,
-              index: i,
-              stage: stage,
-            );
-          },
-        ),
+          return _SlotMachineReel(digit: digit, index: i, stage: stage);
+        }),
       ),
     );
   }
@@ -624,10 +631,10 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
   void _triggerEntrySpin() {
     _isLocked = false;
     _controller.duration = const Duration(milliseconds: 800);
-    
+
     // Calculate position for the final digit
     double targetPos = -(_reelDigits.length - 1) * 40.0;
-    
+
     _scrollAnimation = Tween<double>(
       begin: 0, // Start slightly above or at top
       end: targetPos,
@@ -648,7 +655,7 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
     // If the target digit changed (common during reveal tricks or peeking)
     if (widget.digit != oldWidget.digit) {
       _setupReel();
-      
+
       // We only trigger an immediate spin if we're NOT currently performing a reveal trick (Stages 1 & 2)
       // Transitions into Stage 2 (Locking) have their own coordinated delayed settlement logic below.
       if (widget.stage == 0) {
@@ -678,10 +685,13 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
         // Calculate final position: we want the last element to be centered
         double targetPos = -(_reelDigits.length - 1) * 40.0;
 
-        _scrollAnimation = Tween<double>(
-          begin: _scrollAnimation.value % 40.0, // Start from current tick
-          end: targetPos,
-        ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
+        _scrollAnimation =
+            Tween<double>(
+              begin: _scrollAnimation.value % 40.0, // Start from current tick
+              end: targetPos,
+            ).animate(
+              CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+            );
 
         _controller.forward(from: 0).then((_) {
           if (mounted) {
@@ -714,12 +724,14 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
     final bool isDark = HelperFunctions.isDarkMode(context);
 
     // Dynamic color and glow
-    Color digitColor = _isLocked ? const Color(0xFF39FF14) : (isDark ? Colors.white : Colors.black);
+    Color digitColor = _isLocked
+        ? const Color(0xFF39FF14)
+        : (isDark ? Colors.white : Colors.black);
 
     return Container(
-      width: 28,
+      width: 22,
       height: 50,
-      margin: const EdgeInsets.symmetric(horizontal: 1),
+      margin: const EdgeInsets.symmetric(horizontal: 0),
       child: ClipRect(
         child: Stack(
           alignment: Alignment.center,
@@ -729,7 +741,9 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
               animation: _scrollAnimation,
               builder: (context, child) {
                 // Apply blur effect during spin
-                double blurAmount = _controller.isAnimating && !_isLocked ? 1.5 : 0.0;
+                double blurAmount = _controller.isAnimating && !_isLocked
+                    ? 1.5
+                    : 0.0;
 
                 return ImageFiltered(
                   imageFilter: dart_ui.ImageFilter.blur(sigmaY: blurAmount),
@@ -737,7 +751,9 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
                     offset: Offset(0, _scrollAnimation.value),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: _reelDigits.map((d) => _buildDigit(d, digitColor)).toList(),
+                      children: _reelDigits
+                          .map((d) => _buildDigit(d, digitColor))
+                          .toList(),
                     ),
                   ),
                 );
@@ -752,10 +768,14 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.8),
+                      isDark
+                          ? Colors.black.withOpacity(0.8)
+                          : Colors.white.withOpacity(0.8),
                       Colors.transparent,
                       Colors.transparent,
-                      isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.8),
+                      isDark
+                          ? Colors.black.withOpacity(0.8)
+                          : Colors.white.withOpacity(0.8),
                     ],
                     stops: const [0.0, 0.25, 0.75, 1.0],
                   ),
@@ -795,10 +815,353 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
     );
   }
 }
+
+class _DataStreamRevealAnimation extends StatefulWidget {
+  final int stage;
+  final String oldText;
+  final String newText;
+
+  const _DataStreamRevealAnimation({
+    required this.stage,
+    required this.oldText,
+    required this.newText,
+  });
+
+  @override
+  State<_DataStreamRevealAnimation> createState() =>
+      _DataStreamRevealAnimationState();
+}
+
+class _DataStreamRevealAnimationState
+    extends State<_DataStreamRevealAnimation> {
+  final List<_RainDrop> _rainDrops = [];
+  Timer? _rainTimer;
+  final Random _rand = Random();
+
+  @override
+  void initState() {
+    super.initState();
+    _setupRain();
+  }
+
+  void _setupRain() {
+    _rainDrops.clear();
+    // MASSIVE DATA STORM (From 60 to 150)
+    for (int i = 0; i < 1500; i++) {
+      _rainDrops.add(
+        _RainDrop(
+          x: _rand.nextDouble() * Get.width,
+          y: _rand.nextDouble() * -800, // Even wider spawn range
+          speed: 4.0 + (_rand.nextDouble() * 8.0),
+          opacity: 0.1 + (_rand.nextDouble() * 0.6),
+        ),
+      );
+    }
+  }
+
+  void _startRain() {
+    _rainTimer?.cancel();
+    _rainTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        for (var drop in _rainDrops) {
+          drop.y += drop.speed;
+          if (drop.y > 600) {
+            drop.y = -100;
+            drop.x = _rand.nextDouble() * Get.width;
+          }
+        }
+      });
+    });
+  }
+
+  void _stopRain() {
+    _rainTimer?.cancel();
+    _rainTimer = null;
+    setState(() {});
+  }
+
+  @override
+  void didUpdateWidget(covariant _DataStreamRevealAnimation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((widget.stage == 1 || widget.stage == 2) && _rainTimer == null) {
+      _startRain();
+    } else if (widget.stage == 4 || widget.stage == 0) {
+      _stopRain();
+    }
+  }
+
+  @override
+  void dispose() {
+    _rainTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String currentTargetText = widget.stage < 3
+        ? widget.oldText
+        : widget.newText;
+    final maxLength = max(widget.oldText.length, widget.newText.length);
+
+    return SizedBox(
+      height: 60,
+      width: double.infinity,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // GLOBAL RAIN BACKGROUND (Denser and with heads)
+          if (_rainTimer != null)
+            ..._rainDrops.map(
+              (drop) => Positioned(
+                left: drop.x,
+                top: drop.y - 200,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // FAINT TRAIL
+                    Opacity(
+                      opacity: drop.opacity * 0.5,
+                      child: Text(
+                        _rand.nextInt(10).toString(),
+                        style: TextStyle(
+                          color: const Color(0xFF39FF14),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w100,
+                        ),
+                      ),
+                    ),
+                    // BRIGHT LEADING HEAD
+                    Opacity(
+                      opacity: drop.opacity,
+                      child: Text(
+                        _rand.nextInt(10).toString(),
+                        style: TextStyle(
+                          color: const Color(0xFF39FF14),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              color: const Color(0xFF39FF14).withOpacity(0.8),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // THE DIGITS
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(maxLength, (i) {
+                String digit = i < currentTargetText.length
+                    ? currentTargetText[i]
+                    : "";
+                return _DataStreamColumn(
+                  digit: digit,
+                  index: i,
+                  stage: widget.stage,
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DataStreamColumn extends StatefulWidget {
+  final String digit;
+  final int index;
+  final int stage;
+
+  const _DataStreamColumn({
+    required this.digit,
+    required this.index,
+    required this.stage,
+  });
+
+  @override
+  State<_DataStreamColumn> createState() => _DataStreamColumnState();
+}
+
+class _DataStreamColumnState extends State<_DataStreamColumn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  Timer? _flickerTimer;
+  String _currentRandomDigit = "0";
+  bool _isLocked = false;
+  final Random _rand = Random();
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000), // Slower pulse
+    )..repeat(reverse: true);
+
+    _currentRandomDigit = widget.digit.isEmpty ? " " : widget.digit;
+    if (widget.stage == 0 || widget.stage == 4) {
+      _isLocked = true;
+    }
+  }
+
+  void _startFlicker() {
+    _flickerTimer?.cancel();
+    _isLocked = false;
+    _flickerTimer = Timer.periodic(const Duration(milliseconds: 60), (timer) {
+      if (!mounted) return;
+      setState(() {
+        _currentRandomDigit = _rand.nextInt(10).toString();
+      });
+    });
+  }
+
+  void _stopFlicker() {
+    _flickerTimer?.cancel();
+    _flickerTimer = null;
+    setState(() {
+      _isLocked = true;
+      _currentRandomDigit = widget.digit.isEmpty ? " " : widget.digit;
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _DataStreamColumn oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.digit != oldWidget.digit && widget.stage == 0) {
+      _currentRandomDigit = widget.digit;
+    }
+
+    if (widget.stage == 1 && oldWidget.stage != 1) {
+      _startFlicker();
+    } else if (widget.stage == 2 && oldWidget.stage != 2) {
+      if (_flickerTimer == null) _startFlicker();
+    } else if (widget.stage == 3 && oldWidget.stage != 3) {
+      final delay = widget.index * 150;
+      Future.delayed(Duration(milliseconds: delay), () {
+        if (mounted) _stopFlicker();
+      });
+    } else if (widget.stage == 4 && oldWidget.stage != 4) {
+      HapticFeedback.lightImpact();
+    } else if (widget.stage == 0 && oldWidget.stage != 0) {
+      _stopFlicker();
+      _isLocked = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _flickerTimer?.cancel();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = HelperFunctions.isDarkMode(context);
+    final Color matrixGreen = const Color(0xFF39FF14);
+    final Color finalColor = isDark ? Colors.white : Colors.black;
+
+    final bool useNormalColor = _isLocked || widget.stage == 0;
+
+    return Container(
+      width: 22, // Tighter Apple-like spacing
+      height: 60,
+      margin: const EdgeInsets.symmetric(horizontal: 0),
+      child: AnimatedBuilder(
+        animation: _pulseController,
+        builder: (context, child) {
+          return Center(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // PERMANENT SOFT GLOW FOR STAGE 4 (Only for revealed digits)
+                if (_isLocked && widget.stage == 4)
+                  Container(
+                    width: 30,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: finalColor.withOpacity(
+                            0.05 + (_pulseController.value * 0.1),
+                          ),
+                          blurRadius: 15 + (_pulseController.value * 10),
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // MAIN DIGIT
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: TextStyle(
+                    fontSize: 34,
+                    fontWeight: useNormalColor
+                        ? FontWeight.w400
+                        : FontWeight.w300,
+                    color: useNormalColor ? finalColor : matrixGreen,
+                    fontFamily: '.SF Pro Display',
+                    shadows: useNormalColor
+                        ? (_isLocked && widget.stage == 4
+                              ? [
+                                  Shadow(
+                                    color: finalColor.withOpacity(
+                                      0.3 + (_pulseController.value * 0.3),
+                                    ),
+                                    blurRadius:
+                                        5 + (_pulseController.value * 5),
+                                  ),
+                                ]
+                              : [])
+                        : [
+                            Shadow(
+                              color: matrixGreen.withOpacity(0.8),
+                              blurRadius: 8,
+                            ),
+                          ],
+                  ),
+                  child: Text(_currentRandomDigit),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _RainDrop {
+  double x;
+  double y;
+  double speed;
+  double opacity;
+  _RainDrop({
+    required this.x,
+    required this.y,
+    required this.speed,
+    required this.opacity,
+  });
+}
+
 class PointerIgnore extends StatelessWidget {
   final Widget child;
   const PointerIgnore({required this.child, super.key});
   @override
   Widget build(BuildContext context) => IgnorePointer(child: child);
 }
-

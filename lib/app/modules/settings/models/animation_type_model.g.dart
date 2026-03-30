@@ -31,6 +31,8 @@ class AnimationsTypeAdapter extends TypeAdapter<AnimationsType> {
         return AnimationsType.waveAnimation;
       case 8:
         return AnimationsType.slotMachineAnimation;
+      case 9:
+        return AnimationsType.dataStreamAnimation;
       default:
         return AnimationsType.simpleAnimation;
     }
@@ -65,6 +67,9 @@ class AnimationsTypeAdapter extends TypeAdapter<AnimationsType> {
         break;
       case AnimationsType.slotMachineAnimation:
         writer.writeByte(8);
+        break;
+      case AnimationsType.dataStreamAnimation:
+        writer.writeByte(9);
         break;
     }
   }

@@ -32,7 +32,10 @@ enum AnimationsType {
   @HiveField(8)
   slotMachineAnimation,
 
-  // @HiveField(9)
+  @HiveField(9)
+  dataStreamAnimation,
+
+  // @HiveField(10)
   // bounceAnimation,
 
 }

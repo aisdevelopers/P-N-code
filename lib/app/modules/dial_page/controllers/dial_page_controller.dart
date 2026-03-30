@@ -633,6 +633,26 @@ class DialPageController extends GetxController
         fadeStage.value = 3;
 
         await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.dataStreamAnimation) {
+        // FRAME 2: Trigger (Interference)
+        fadeStage.value = 1;
+        await Future.delayed(const Duration(milliseconds: 400));
+
+        // FRAME 3 & 4: Data Stream Overwrite
+        fadeStage.value = 2;
+        displayNumber = saved;
+        await Future.delayed(const Duration(milliseconds: 1200));
+
+        // FRAME 5: Resolution Lock
+        fadeStage.value = 3;
+        await Future.delayed(Duration(milliseconds: (saved.length * 200) + 500));
+
+        // FRAME 6: Final Sharp Reveal
+        fadeStage.value = 4;
+        await Future.delayed(const Duration(milliseconds: 500));
+        // Keep stage 4 as the final stable state
+
+        await _addAndSaveNumber(displayNumber);
       } else {
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);
@@ -705,6 +725,25 @@ class DialPageController extends GetxController
 
         await Future.delayed(Duration(milliseconds: (displayNumber.length * 150) + 200));
         fadeStage.value = 3;
+
+        await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.dataStreamAnimation) {
+        // FRAME 2: Trigger (Interference)
+        fadeStage.value = 1;
+        await Future.delayed(const Duration(milliseconds: 400));
+
+        // FRAME 3 & 4: Data Stream Overwrite
+        fadeStage.value = 2;
+        await Future.delayed(const Duration(milliseconds: 1200));
+
+        // FRAME 5: Resolution Lock
+        fadeStage.value = 3;
+        await Future.delayed(Duration(milliseconds: (displayNumber.length * 200) + 500));
+
+        // FRAME 6: Final Sharp Reveal
+        fadeStage.value = 4;
+        await Future.delayed(const Duration(milliseconds: 500));
+        // Keep stage 4 stable
 
         await _addAndSaveNumber(displayNumber);
       } else {
