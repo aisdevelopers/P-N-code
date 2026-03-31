@@ -555,7 +555,8 @@ class DialPageController extends GetxController
           animationType != AnimationsType.slideAnimation &&
           animationType != AnimationsType.slotMachineAnimation &&
           animationType != AnimationsType.dataStreamAnimation &&
-          animationType != AnimationsType.digitShuffleDeckAnimation) {
+          animationType != AnimationsType.digitShuffleDeckAnimation &&
+          animationType != AnimationsType.digitCloneFlood) {
         displayNumber = saved;
       }
 
@@ -675,6 +676,25 @@ class DialPageController extends GetxController
         await Future.delayed(const Duration(milliseconds: 500));
 
         await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.digitCloneFlood) {
+        // FRAME 2: Trigger (Initial Duplication)
+        fadeStage.value = 1;
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // FRAME 3: Flood Phase (Screen fills with digits)
+        fadeStage.value = 2;
+        displayNumber = saved;
+        await Future.delayed(const Duration(milliseconds: 2000));
+
+        // FRAME 4: Collapse Phase (Merging into final positions)
+        fadeStage.value = 3;
+        await Future.delayed(const Duration(milliseconds: 1000));
+
+        // FRAME 5: Final Sharp Reveal
+        fadeStage.value = 4;
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        await _addAndSaveNumber(displayNumber);
       } else {
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);
@@ -782,6 +802,24 @@ class DialPageController extends GetxController
         await Future.delayed(Duration(milliseconds: (displayNumber.length * 200) + 500));
 
         // FRAME 6: Final Sharp Reveal
+        fadeStage.value = 4;
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.digitCloneFlood) {
+        // FRAME 2: Trigger (Initial Duplication)
+        fadeStage.value = 1;
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // FRAME 3: Flood Phase (Screen fills with digits)
+        fadeStage.value = 2;
+        await Future.delayed(const Duration(milliseconds: 2000));
+
+        // FRAME 4: Collapse Phase (Merging into final positions)
+        fadeStage.value = 3;
+        await Future.delayed(const Duration(milliseconds: 1000));
+
+        // FRAME 5: Final Sharp Reveal
         fadeStage.value = 4;
         await Future.delayed(const Duration(milliseconds: 500));
 

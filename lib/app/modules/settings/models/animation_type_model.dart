@@ -38,6 +38,9 @@ enum AnimationsType {
   @HiveField(10)
   digitShuffleDeckAnimation,
 
+  @HiveField(11)
+  digitCloneFlood,
+
 }
 
 extension AnimationsTypeTitle on AnimationsType {
