@@ -639,9 +639,12 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
     double targetPos = -(_reelDigits.length - 1) * 40.0;
 
     _scrollAnimation = Tween<double>(
-      begin: 0, // Start slightly above or at top
+      begin: -100.0, // Start higher up for a more dramatic drop
       end: targetPos,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const ElasticOutCurve(0.6), // Dramatic entry bounce
+    ));
 
     _controller.forward(from: 0).then((_) {
       if (mounted) {
@@ -683,18 +686,20 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
         if (!mounted) return;
 
         _controller.stop();
-        _controller.duration = const Duration(milliseconds: 800);
+        _controller.duration = const Duration(milliseconds: 1500); // Plenty of time for the bounce to play out
 
         // Calculate final position: we want the last element to be centered
         double targetPos = -(_reelDigits.length - 1) * 40.0;
 
-        _scrollAnimation =
-            Tween<double>(
-              begin: _scrollAnimation.value % 40.0, // Start from current tick
-              end: targetPos,
-            ).animate(
-              CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-            );
+        _scrollAnimation = Tween<double>(
+          begin: _scrollAnimation.value, 
+          end: targetPos,
+        ).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const ElasticOutCurve(0.5), // Aggressive dramatic bounce
+          ),
+        );
 
         _controller.forward(from: 0).then((_) {
           if (mounted) {
@@ -1154,6 +1159,7 @@ class _RainDrop {
     required this.opacity,
   });
 }
+
 class _DigitShuffleDeckAnimation extends StatefulWidget {
   final int stage;
   final String oldText;
@@ -1166,10 +1172,12 @@ class _DigitShuffleDeckAnimation extends StatefulWidget {
   });
 
   @override
-  State<_DigitShuffleDeckAnimation> createState() => _DigitShuffleDeckAnimationState();
+  State<_DigitShuffleDeckAnimation> createState() =>
+      _DigitShuffleDeckAnimationState();
 }
 
-class _DigitShuffleDeckAnimationState extends State<_DigitShuffleDeckAnimation> {
+class _DigitShuffleDeckAnimationState
+    extends State<_DigitShuffleDeckAnimation> {
   late List<_CardStateModel> _cards;
   final Random _rand = Random();
   Timer? _shuffleTimer;
@@ -1388,7 +1396,8 @@ class _DigitCloneFloodAnimation extends StatefulWidget {
   });
 
   @override
-  State<_DigitCloneFloodAnimation> createState() => _DigitCloneFloodAnimationState();
+  State<_DigitCloneFloodAnimation> createState() =>
+      _DigitCloneFloodAnimationState();
 }
 
 class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
@@ -1396,7 +1405,7 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
   final Random _rand = Random();
   Timer? _chaosTimer;
   String _currentCloneDigit = "";
-  
+
   // Freeze values to prevent premature reveal
   String _frozenOldText = "";
   String _frozenNewText = "";
@@ -1413,12 +1422,9 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
     _clones.clear();
     // 25 Clones for a more dense "Flood" effect
     for (int i = 0; i < 25; i++) {
-      _clones.add(_CloneModel(
-        id: i,
-        offset: Offset.zero,
-        opacity: 0.0,
-        scale: 1.0,
-      ));
+      _clones.add(
+        _CloneModel(id: i, offset: Offset.zero, opacity: 0.0, scale: 1.0),
+      );
     }
   }
 
@@ -1435,12 +1441,12 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
           );
           clone.opacity = 0.2 + (_rand.nextDouble() * 0.7);
           clone.scale = 0.5 + (_rand.nextDouble() * 1.5);
-          
+
           // Flicker digits randomly
           if (_rand.nextBool()) {
             _currentCloneDigit = List.generate(
-              _frozenOldText.length, 
-              (_) => _rand.nextInt(10).toString()
+              _frozenOldText.length,
+              (_) => _rand.nextInt(10).toString(),
             ).join();
           }
         }
@@ -1461,7 +1467,7 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
       // FREEZE values at start of animation
       _frozenOldText = widget.oldText;
       _frozenNewText = widget.newText;
-      
+
       // START CLONING (Digits start to detach)
       setState(() {
         for (int i = 0; i < _clones.length; i++) {
@@ -1477,7 +1483,7 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
       if (widget.newText != _frozenNewText) {
         _frozenNewText = widget.newText;
       }
-      
+
       // SYSTEM OVERLOAD / FLOOD (Primary number disappears into chaos)
       _startChaos();
     } else if (widget.stage == 3 && oldWidget.stage != 3) {
@@ -1508,7 +1514,7 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
   Widget build(BuildContext context) {
     final bool isDark = HelperFunctions.isDarkMode(context);
     final Color textColor = isDark ? Colors.white : Colors.black;
-    
+
     // Choose which text to show on clones
     // On Stage 1 & 2, clones look like the OLD text or random noise.
     // On Stage 3, they become the NEW text as they merge.
@@ -1529,37 +1535,43 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
         children: [
           // THE CLONES (FLOOD LAYERS)
           if (widget.stage > 0 && widget.stage < 4)
-            ..._clones.map((clone) => AnimatedPositioned(
-              duration: Duration(milliseconds: widget.stage == 2 ? 60 : 600),
-              curve: widget.stage == 3 ? Curves.elasticOut : Curves.easeInOut,
-              left: (Get.width / 2) - 100 + clone.offset.dx, 
-              top: 10 + clone.offset.dy,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: clone.opacity,
-                child: AnimatedScale(
+            ..._clones.map(
+              (clone) => AnimatedPositioned(
+                duration: Duration(milliseconds: widget.stage == 2 ? 60 : 600),
+                curve: widget.stage == 3 ? Curves.elasticOut : Curves.easeInOut,
+                left: (Get.width / 2) - 100 + clone.offset.dx,
+                top: 10 + clone.offset.dy,
+                child: AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
-                  scale: clone.scale,
-                  child: Text(
-                    cloneText,
-                    style: TextStyle(
-                      fontSize: 34,
-                      color: widget.stage == 2 
-                        ? Colors.red.withOpacity(clone.opacity) // Red tint for "System Overload"
-                        : textColor.withOpacity(0.5),
-                      fontFamily: '.SF Pro Display',
-                      fontWeight: FontWeight.w300,
+                  opacity: clone.opacity,
+                  child: AnimatedScale(
+                    duration: const Duration(milliseconds: 200),
+                    scale: clone.scale,
+                    child: Text(
+                      cloneText,
+                      style: TextStyle(
+                        fontSize: 34,
+                        color: widget.stage == 2
+                            ? Colors.red.withOpacity(
+                                clone.opacity,
+                              ) // Red tint for "System Overload"
+                            : textColor.withOpacity(0.5),
+                        fontFamily: '.SF Pro Display',
+                        fontWeight: FontWeight.w300,
+                      ),
                     ),
                   ),
                 ),
               ),
-            )),
+            ),
 
           // THE PRIMARY NUMBER
           Center(
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 300),
-              opacity: (widget.stage == 2) ? 0.0 : 1.0, // Primary disappears during flood
+              opacity: (widget.stage == 2)
+                  ? 0.0
+                  : 1.0, // Primary disappears during flood
               child: AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeInOut,
@@ -1571,7 +1583,9 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
                   letterSpacing: widget.stage == 1 ? 8.0 : 0.0,
                   shadows: [], // Removed glowing shadows
                 ),
-                child: Text(widget.stage >= 3 ? _frozenNewText : _frozenOldText),
+                child: Text(
+                  widget.stage >= 3 ? _frozenNewText : _frozenOldText,
+                ),
               ),
             ),
           ),
