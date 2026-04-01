@@ -727,9 +727,7 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
     final bool isDark = HelperFunctions.isDarkMode(context);
 
     // Dynamic color and glow
-    Color digitColor = _isLocked
-        ? const Color(0xFF39FF14)
-        : (isDark ? Colors.white : Colors.black);
+    Color digitColor = isDark ? Colors.white : Colors.black;
 
     return Container(
       width: 22,
@@ -773,14 +771,18 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
                     colors: [
                       isDark
                           ? Colors.black.withOpacity(0.8)
-                          : Colors.white.withOpacity(0.8),
-                      Colors.transparent,
-                      Colors.transparent,
+                          : Colors.white.withOpacity(0.95),
+                      isDark 
+                          ? Colors.black.withOpacity(0.0) 
+                          : Colors.white.withOpacity(0.0),
+                      isDark 
+                          ? Colors.black.withOpacity(0.0) 
+                          : Colors.white.withOpacity(0.0),
                       isDark
                           ? Colors.black.withOpacity(0.8)
-                          : Colors.white.withOpacity(0.8),
+                          : Colors.white.withOpacity(0.95),
                     ],
-                    stops: const [0.0, 0.25, 0.75, 1.0],
+                    stops: const [0.0, 0.15, 0.85, 1.0],
                   ),
                 ),
               ),
@@ -800,18 +802,9 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
           d,
           style: TextStyle(
             fontSize: 34,
-            fontWeight: _isLocked ? FontWeight.bold : FontWeight.w400,
+            fontWeight: FontWeight.w400,
             fontFamily: '.SF Pro Display',
             color: color,
-            shadows: _isLocked
-                ? [
-                    const BoxShadow(
-                      color: Color(0xAA39FF14),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ]
-                : null,
           ),
         ),
       ),
