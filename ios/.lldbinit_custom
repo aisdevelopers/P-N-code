@@ -1,0 +1,4 @@
+command script import --relative-to-command-file Flutter/ephemeral/flutter_lldb_helper.py
+process handle -s false -n false -p true EXC_BAD_ACCESS
+process handle -s false -n false -p true SIGSEGV
+process handle -s false -n false -p true SIGBUS

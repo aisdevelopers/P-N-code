@@ -1,0 +1,5 @@
+# Final local LLDB signal bypass for P-N-code (ios directory)
+# Dart VM uses EXC_BAD_ACCESS for internal memory guards on ARM64
+process handle -s false -n false -p true EXC_BAD_ACCESS
+process handle -s false -n false -p true SIGBUS
+process handle -s false -n false -p true SIGSEGV
