@@ -1,20 +1,18 @@
 # Project Handoff - PN Code Dialer
 
 ## Current Status
-- **Baseline**: Initializing project documentation and session rules.
+- **Matrix Animation**: Background rain now fades smoothly at the bottom edges using a ShaderMask.
+- **Orientation**: Application is strictly locked to Portrait mode.
 - **Environment**: Flutter Mobile/Tab with Hive Backend.
 - **Architecture**: GetX (feature-first).
 
 ## Modified Files (Last Session)
-- **`GEMINI.md`**: [NEW] Project-specific rules (GetX, Hive, animations).
-- **`rules_10k.md`**: [NEW] Flutter styles and performance rules.
-- **`AGENTS.md`**: [NEW] Agent identity and Flutter/animation focus.
-- **`HANDOFF.md`**: [NEW] Project tracking and session history.
+- **`lib/main.dart`**: Locked orientation to `portraitUp` and added `flutter/services.dart` import.
+- **`lib/app/modules/dial_page/views/widgets/display_number_area_widget.dart`**: Refined Matrix rain with `ShaderMask` and `LinearGradient` for smooth alpha fade-out.
 
 ## Key Decisions
-- **Consistency**: Adopting the same AI operational rules as the previous projects (Datapoint/Humrahi) for cross-project development consistency.
-- **State Management**: Continuing to use GetX for all reactive UI and dependency injection.
-- **Persistence**: Using Hive for local data persistence with custom adapters.
+- **Visual Polish**: Used `ShaderMask` instead of simple clipping to ensure digits "dissolve" rather than disappear instantly.
+- **Force Portrait**: Applied `setPreferredOrientations` in `main()` for maximum impact across the entire app lifecycle.
 
 ## Next 3 Tasks
 1. Verify the functionality of the existing slot machine and digit clone animations in the dialer.

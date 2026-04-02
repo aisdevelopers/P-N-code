@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/modules/dial_page/controllers/theme_controller.dart';
@@ -11,6 +12,9 @@ import 'app/utils/themes/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   debugPrint("Initializing PN Code with stable engine...");
 
   await Hive.initFlutter();

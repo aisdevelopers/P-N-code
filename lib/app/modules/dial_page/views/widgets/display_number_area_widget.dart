@@ -638,13 +638,16 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
     // Calculate position for the final digit
     double targetPos = -(_reelDigits.length - 1) * 40.0;
 
-    _scrollAnimation = Tween<double>(
-      begin: -100.0, // Start higher up for a more dramatic drop
-      end: targetPos,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const ElasticOutCurve(0.6), // Dramatic entry bounce
-    ));
+    _scrollAnimation =
+        Tween<double>(
+          begin: -100.0, // Start higher up for a more dramatic drop
+          end: targetPos,
+        ).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const ElasticOutCurve(0.6), // Dramatic entry bounce
+          ),
+        );
 
     _controller.forward(from: 0).then((_) {
       if (mounted) {
@@ -686,20 +689,23 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
         if (!mounted) return;
 
         _controller.stop();
-        _controller.duration = const Duration(milliseconds: 1500); // Plenty of time for the bounce to play out
+        _controller.duration = const Duration(
+          milliseconds: 1500,
+        ); // Plenty of time for the bounce to play out
 
         // Calculate final position: we want the last element to be centered
         double targetPos = -(_reelDigits.length - 1) * 40.0;
 
-        _scrollAnimation = Tween<double>(
-          begin: _scrollAnimation.value, 
-          end: targetPos,
-        ).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const ElasticOutCurve(0.5), // Aggressive dramatic bounce
-          ),
-        );
+        _scrollAnimation =
+            Tween<double>(
+              begin: _scrollAnimation.value,
+              end: targetPos,
+            ).animate(
+              CurvedAnimation(
+                parent: _controller,
+                curve: const ElasticOutCurve(0.5), // Aggressive dramatic bounce
+              ),
+            );
 
         _controller.forward(from: 0).then((_) {
           if (mounted) {
@@ -777,11 +783,11 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
                       isDark
                           ? Colors.black.withOpacity(0.8)
                           : Colors.white.withOpacity(0.95),
-                      isDark 
-                          ? Colors.black.withOpacity(0.0) 
+                      isDark
+                          ? Colors.black.withOpacity(0.0)
                           : Colors.white.withOpacity(0.0),
-                      isDark 
-                          ? Colors.black.withOpacity(0.0) 
+                      isDark
+                          ? Colors.black.withOpacity(0.0)
                           : Colors.white.withOpacity(0.0),
                       isDark
                           ? Colors.black.withOpacity(0.8)
@@ -870,7 +876,7 @@ class _DataStreamRevealAnimationState
       setState(() {
         for (var drop in _rainDrops) {
           drop.y += drop.speed;
-          if (drop.y > 600) {
+          if (drop.y > 800) {
             drop.y = -100;
             drop.x = _rand.nextDouble() * Get.width;
           }
@@ -916,45 +922,77 @@ class _DataStreamRevealAnimationState
         children: [
           // GLOBAL RAIN BACKGROUND (Denser and with heads)
           if (_rainTimer != null)
-            ..._rainDrops.map(
-              (drop) => Positioned(
-                left: drop.x,
-                top: drop.y - 200,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // FAINT TRAIL
-                    Opacity(
-                      opacity: drop.opacity * 0.5,
-                      child: Text(
-                        _rand.nextInt(10).toString(),
-                        style: TextStyle(
-                          color: const Color(0xFF39FF14),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w100,
-                        ),
+            ShaderMask(
+              shaderCallback: (rect) {
+                // Alpha fade-out at the bottom
+                return const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.black, Colors.transparent],
+                  stops: [0.8, 1.0],
+                ).createShader(rect);
+              },
+              blendMode: BlendMode.dstIn,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: _rainDrops.map((drop) {
+                  // Blur profile:
+                  // 0.0 - 0.95: Perfectly Sharp
+                  // 0.95 - 1.0: Instant blur-out right before disappearance
+                  final double relativeY = (drop.y - 650).clamp(0, 60) / 60;
+                  double localBlur = 0.0;
+                  if (relativeY > 0.95) {
+                    localBlur = ((relativeY - 0.95) / 0.05) * 12.0;
+                  }
+
+                  return Positioned(
+                    left: drop.x,
+                    top: drop.y - 350,
+                    child: ImageFiltered(
+                      imageFilter: dart_ui.ImageFilter.blur(
+                        sigmaY: localBlur,
+                        sigmaX: localBlur / 2,
                       ),
-                    ),
-                    // BRIGHT LEADING HEAD
-                    Opacity(
-                      opacity: drop.opacity,
-                      child: Text(
-                        _rand.nextInt(10).toString(),
-                        style: TextStyle(
-                          color: const Color(0xFF39FF14),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              color: const Color(0xFF39FF14).withOpacity(0.8),
-                              blurRadius: 10,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // FAINT TRAIL
+                          Opacity(
+                            opacity: drop.opacity * 0.5,
+                            child: Text(
+                              _rand.nextInt(10).toString(),
+                              style: const TextStyle(
+                                color: Color(0xFF39FF14),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w100,
+                              ),
                             ),
-                          ],
-                        ),
+                          ),
+                          // BRIGHT LEADING HEAD
+                          Opacity(
+                            opacity: drop.opacity,
+                            child: Text(
+                              _rand.nextInt(10).toString(),
+                              style: TextStyle(
+                                color: const Color(0xFF39FF14),
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                shadows: [
+                                  Shadow(
+                                    color: const Color(
+                                      0xFF39FF14,
+                                    ).withOpacity(0.8),
+                                    blurRadius: 10,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                }).toList(),
               ),
             ),
 
