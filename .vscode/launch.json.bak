@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "P-N-code",
+      "request": "launch",
+      "type": "dart",
+      "toolArgs": [
+        "--dart-define=dart.vm.use-pointer-compression=false",
+        "--dart-define=dart.vm.write-barrier-checks=false"
+      ]
+    }
+  ]
+}
