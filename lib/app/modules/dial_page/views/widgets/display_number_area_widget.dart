@@ -1151,15 +1151,14 @@ class _DataStreamColumnState extends State<_DataStreamColumn>
                   opacity: (widget.stage == 1 || widget.stage == 2) ? 0.0 : 1.0,
                   child: AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 200),
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: useNormalColor
-                        ? FontWeight.w400
-                        : FontWeight.w300,
-                    color: useNormalColor ? finalColor : matrixGreen,
-                    fontFamily: '.SF Pro Display',
-                    shadows: useNormalColor
-                        ? (_isLocked && widget.stage == 4
+                    style: TextStyle(
+                      fontSize: 34,
+                      fontWeight:
+                          useNormalColor ? FontWeight.w400 : FontWeight.w300,
+                      color: useNormalColor ? finalColor : matrixGreen,
+                      fontFamily: '.SF Pro Display',
+                      shadows: useNormalColor
+                          ? (_isLocked && widget.stage == 4
                               ? [
                                   Shadow(
                                     color: finalColor.withOpacity(
@@ -1170,14 +1169,15 @@ class _DataStreamColumnState extends State<_DataStreamColumn>
                                   ),
                                 ]
                               : [])
-                        : [
-                            Shadow(
-                              color: matrixGreen.withOpacity(0.8),
-                              blurRadius: 8,
-                            ),
-                          ],
+                          : [
+                              Shadow(
+                                color: matrixGreen.withOpacity(0.8),
+                                blurRadius: 8,
+                              ),
+                            ],
+                    ),
+                    child: Text(_currentRandomDigit),
                   ),
-                  child: Text(_currentRandomDigit),
                 ),
               ],
             ),
