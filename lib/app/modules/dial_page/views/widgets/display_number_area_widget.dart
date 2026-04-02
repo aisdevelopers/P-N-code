@@ -1146,8 +1146,11 @@ class _DataStreamColumnState extends State<_DataStreamColumn>
                   ),
 
                 // MAIN DIGIT
-                AnimatedDefaultTextStyle(
+                AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
+                  opacity: (widget.stage == 1 || widget.stage == 2) ? 0.0 : 1.0,
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 200),
                   style: TextStyle(
                     fontSize: 34,
                     fontWeight: useNormalColor
