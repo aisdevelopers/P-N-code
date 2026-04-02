@@ -1126,29 +1126,12 @@ class _DataStreamColumnState extends State<_DataStreamColumn>
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // PERMANENT SOFT GLOW FOR STAGE 4 (Only for revealed digits)
-                if (_isLocked && widget.stage == 4)
-                  Container(
-                    width: 30,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: finalColor.withOpacity(
-                            0.05 + (_pulseController.value * 0.1),
-                          ),
-                          blurRadius: 15 + (_pulseController.value * 10),
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                  ),
+                // NO PERMANENT SOFT GLOW (Removed to eliminate background artifacts)
 
                 // MAIN DIGIT
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
-                  opacity: (widget.stage == 1 || widget.stage == 2) ? 0.0 : 1.0,
+                  opacity: 1.0,
                   child: AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 200),
                     style: TextStyle(
@@ -1169,12 +1152,7 @@ class _DataStreamColumnState extends State<_DataStreamColumn>
                                   ),
                                 ]
                               : [])
-                          : [
-                              Shadow(
-                                color: matrixGreen.withOpacity(0.8),
-                                blurRadius: 8,
-                              ),
-                            ],
+                          : [], // Removed green matrix glow
                     ),
                     child: Text(_currentRandomDigit),
                   ),
