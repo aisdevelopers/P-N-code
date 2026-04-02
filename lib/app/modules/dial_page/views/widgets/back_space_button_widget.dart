@@ -22,12 +22,13 @@ class BackSpaceButtonWidget extends GetView<DialPageController> {
               color: Colors.grey[700],
               onLongPress: () {
                 HapticFeedback.heavyImpact();
-                DialPageController.instance.displayNumber = '';
+                controller.displayNumber = '';
                 controller.timeRevealIndex = 0;
                 controller.timeBuffer = '';
                 controller.showBackSpaceButton = false;
                 controller.revealAnswer = false;
                 controller.forceRevealIndex = 0;
+                controller.fadeStage.value = 0; // Reset animation stage
               },
               icon: const Icon(Icons.backspace, size: 28),
               onPressed: DialPageController.instance.onDigitDelete,

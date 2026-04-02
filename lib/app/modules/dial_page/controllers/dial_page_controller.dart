@@ -665,7 +665,7 @@ class DialPageController extends GetxController
         // FRAME 3 & 4: Shuffle Phase
         fadeStage.value = 2;
         displayNumber = saved;
-        await Future.delayed(const Duration(milliseconds: 1500));
+        await Future.delayed(const Duration(milliseconds: 2500)); // Increased from 1500
 
         // FRAME 5: Reorder Phase (Snap into new positions)
         fadeStage.value = 3;
