@@ -929,25 +929,25 @@ class _DataStreamRevealAnimationState
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [Colors.black, Colors.transparent],
-                  stops: [0.8, 1.0],
+                  stops: [0.75, 1.0], // Slightly earlier fade to prevent line
                 ).createShader(rect);
               },
               blendMode: BlendMode.dstIn,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: _rainDrops.map((drop) {
-                  // Blur profile:
-                  // 0.0 - 0.95: Perfectly Sharp
-                  // 0.95 - 1.0: Instant blur-out right before disappearance
+                  // Position relative to dialer area
+                  // Offset adjusted to -400 to ensure heads transition through the mask
                   final double relativeY = (drop.y - 650).clamp(0, 60) / 60;
                   double localBlur = 0.0;
-                  if (relativeY > 0.95) {
-                    localBlur = ((relativeY - 0.95) / 0.05) * 12.0;
+                  if (relativeY > 0.90) {
+                    // Blur slightly earlier
+                    localBlur = ((relativeY - 0.90) / 0.10) * 10.0;
                   }
 
                   return Positioned(
                     left: drop.x,
-                    top: drop.y - 350,
+                    top: drop.y - 400, // Adjusted offset
                     child: ImageFiltered(
                       imageFilter: dart_ui.ImageFilter.blur(
                         sigmaY: localBlur,
@@ -1136,22 +1136,23 @@ class _DataStreamColumnState extends State<_DataStreamColumn>
                     duration: const Duration(milliseconds: 200),
                     style: TextStyle(
                       fontSize: 34,
-                      fontWeight:
-                          useNormalColor ? FontWeight.w400 : FontWeight.w300,
+                      fontWeight: useNormalColor
+                          ? FontWeight.w400
+                          : FontWeight.w300,
                       color: useNormalColor ? finalColor : matrixGreen,
                       fontFamily: '.SF Pro Display',
                       shadows: useNormalColor
                           ? (_isLocked && widget.stage == 4
-                              ? [
-                                  Shadow(
-                                    color: finalColor.withOpacity(
-                                      0.3 + (_pulseController.value * 0.3),
+                                ? [
+                                    Shadow(
+                                      color: finalColor.withOpacity(
+                                        0.3 + (_pulseController.value * 0.3),
+                                      ),
+                                      blurRadius:
+                                          5 + (_pulseController.value * 5),
                                     ),
-                                    blurRadius:
-                                        5 + (_pulseController.value * 5),
-                                  ),
-                                ]
-                              : [])
+                                  ]
+                                : [])
                           : [], // Removed green matrix glow
                     ),
                     child: Text(_currentRandomDigit),
