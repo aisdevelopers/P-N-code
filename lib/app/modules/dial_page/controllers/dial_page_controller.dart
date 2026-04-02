@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:pn_code/app/modules/dial_page/models/dial_entry_model.dart';
 import 'package:pn_code/app/utils/services/icloud_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import '../../../utils/constants/key_constants.dart';
 import '../../../utils/services/local_storage.dart';
 import '../../settings/controllers/settings_controller.dart';
@@ -217,8 +218,89 @@ class DialPageController extends GetxController
     }
 
     debugPrint("Loaded Mode: $mode");
+    _initBackTapListener();
 
     super.onInit();
+  }
+
+  StreamSubscription? _accelerometerSubscription;
+  DateTime? _lastTapTime;
+  int _backTapCount = 0;
+  int _shakeCount = 0;
+  static const double _tapThreshold = 12.0;
+  static const double _shakeThreshold = 18.0; // Higher force for deliberate shakes
+
+  void _initBackTapListener() {
+    _accelerometerSubscription?.cancel();
+    _accelerometerSubscription = userAccelerometerEventStream().listen((event) {
+      final String activeAction = settingsAction;
+      
+      // Handle all motion triggers here
+      if (activeAction != SettingsAction.backTap.name && 
+          activeAction != SettingsAction.backDoubleTap.name &&
+          activeAction != SettingsAction.shake.name) return;
+
+      final double magnitude = event.x.abs() + event.y.abs() + event.z.abs();
+      final now = DateTime.now();
+      final int timeSinceLast = _lastTapTime != null 
+          ? now.difference(_lastTapTime!).inMilliseconds 
+          : 1000;
+
+      // Handle SHAKE trigger
+      if (activeAction == SettingsAction.shake.name) {
+        if (magnitude > _shakeThreshold) {
+          if (timeSinceLast > 250) { // Individual shake movement debounce
+            _lastTapTime = now;
+            _shakeCount++;
+            
+            HapticFeedback.mediumImpact(); // Distinct feedback for each partial shake
+            debugPrint("Shake detected: Count $_shakeCount");
+
+            if (_shakeCount >= 3) {
+              debugPrint("Shake SUCCESS - DOING TRICK");
+              _shakeCount = 0;
+              doTheTrick();
+            }
+          }
+        } else if (timeSinceLast > 1500) {
+          // Reset shake count if too much time passes between movements
+          _shakeCount = 0;
+        }
+        return;
+      }
+
+      // Handle BACK TAP triggers
+      if (magnitude > _tapThreshold) {
+        if (timeSinceLast > 150) {
+          _lastTapTime = now;
+          if (activeAction == SettingsAction.backTap.name) {
+             debugPrint("Back Tap: SINGLE TAP - DOING TRICK");
+             doTheTrick();
+          } else if (activeAction == SettingsAction.backDoubleTap.name) {
+             if (timeSinceLast < 800) {
+               _backTapCount++;
+             } else {
+               _backTapCount = 1;
+             }
+             if (_backTapCount == 1) {
+               HapticFeedback.lightImpact();
+               debugPrint("Back Tap: Tap 1 detected");
+             }
+             if (_backTapCount >= 2) {
+               debugPrint("Back Tap: DOUBLE TAP - DOING TRICK");
+               _backTapCount = 0;
+               doTheTrick();
+             }
+          }
+        }
+      }
+    });
+  }
+
+  @override
+  void onClose() {
+    _accelerometerSubscription?.cancel();
+    super.onClose();
   }
 
   static const MethodChannel dtmfChannel = MethodChannel("dtmf_tone");

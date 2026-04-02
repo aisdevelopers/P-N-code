@@ -8,7 +8,7 @@ import '../../dial_page/controllers/swipe_controller.dart';
 import '../models/animation_duration_model.dart';
 import '../models/animation_type_model.dart';
 
-enum SettingsAction { tripleTap, longPress }
+enum SettingsAction { tripleTap, longPress, backTap, backDoubleTap, shake }
 
 enum TrickFeedbackMode { vibrateOnly, toggleOnly }
 

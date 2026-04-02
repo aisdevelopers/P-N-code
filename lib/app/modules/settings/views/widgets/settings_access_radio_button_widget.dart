@@ -17,11 +17,9 @@ class SettingsAccessRadioButtonWidget extends GetView<SettingsController> {
           ),
         ),
         Obx(
-          () => Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+          () => Column(
             children: [
               Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   Radio(
                     value: SettingsAction.tripleTap.name,
@@ -36,7 +34,6 @@ class SettingsAccessRadioButtonWidget extends GetView<SettingsController> {
                   ),
                 ],
               ),
-              const SizedBox(width: 5),
               Row(
                 children: [
                   Radio(
@@ -49,6 +46,54 @@ class SettingsAccessRadioButtonWidget extends GetView<SettingsController> {
                   const SizedBox(width: 5),
                   Text(
                     "Long Press",
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Radio(
+                    value: SettingsAction.backTap.name,
+                    groupValue: controller.settingsAction,
+                    onChanged: (val) {
+                      if (val != null) controller.settingsAction = val;
+                    },
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    "Back Tap",
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Radio(
+                    value: SettingsAction.backDoubleTap.name,
+                    groupValue: controller.settingsAction,
+                    onChanged: (val) {
+                      if (val != null) controller.settingsAction = val;
+                    },
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    "Back Double Tap",
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Radio(
+                    value: SettingsAction.shake.name,
+                    groupValue: controller.settingsAction,
+                    onChanged: (val) {
+                      if (val != null) controller.settingsAction = val;
+                    },
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    "Shake phone",
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],

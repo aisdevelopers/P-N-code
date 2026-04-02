@@ -53,13 +53,15 @@ class BottomNavBarWidget extends GetView<DialPageController> {
           CustomTileWidget(
             title: 'Voicemail',
             onLongPressed: () {
-              if (controller.settingsAction == SettingsAction.longPress.name) {
+              // Always open settings via long press, unless explicitly set to triple tap
+              if (controller.settingsAction != SettingsAction.tripleTap.name) {
                 Get.toNamed(Routes.SETTINGS);
               }
             },
             onPressed: (taps) {
-              if (controller.settingsAction == SettingsAction.tripleTap.name) {
-                if (taps == 3) Get.toNamed(Routes.SETTINGS);
+              // Always open settings via triple tap, unless explicitly set to long press
+              if (controller.settingsAction != SettingsAction.longPress.name) {
+                if (taps >= 3) Get.toNamed(Routes.SETTINGS);
               }
             },
             iconPath: ImgConstants.voicemailIcon,
