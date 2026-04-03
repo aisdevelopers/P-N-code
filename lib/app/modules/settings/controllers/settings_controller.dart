@@ -8,7 +8,9 @@ import '../../dial_page/controllers/swipe_controller.dart';
 import '../models/animation_duration_model.dart';
 import '../models/animation_type_model.dart';
 
-enum SettingsAction { tripleTap, longPress, backDoubleTap, shake }
+enum SettingsAction { tripleTap, longPress }
+
+enum TrickTrigger { topToBottom, bottomToTop, backDoubleTap, shake }
 
 enum TrickFeedbackMode { vibrateOnly, toggleOnly }
 
@@ -59,6 +61,12 @@ class SettingsController extends GetxController {
   set selectedAnimationType(AnimationsType value) =>
       _selectedAnimationType.value = value;
 
+  final Rx<TrickTrigger> _selectedTrickTrigger =
+      TrickTrigger.topToBottom.obs;
+  TrickTrigger get selectedTrickTrigger => _selectedTrickTrigger.value;
+  set selectedTrickTrigger(TrickTrigger value) =>
+      _selectedTrickTrigger.value = value;
+
   final RxList<AnimationDuration> _animationDurationsList =
       <AnimationDuration>[].obs;
   List<AnimationDuration> get animationDurationsList => _animationDurationsList;
@@ -94,6 +102,7 @@ class SettingsController extends GetxController {
   AnimationDuration? _initialAnimationDuration;
   ModeModel? _initialMode;
   TrickFeedbackMode? _initialFeedback;
+  TrickTrigger? _initialTrickTrigger;
 
   @override
   void onInit() {
@@ -150,6 +159,12 @@ class SettingsController extends GetxController {
         AnimationsType.simpleAnimation;
     debugPrint("Settings Animation Type: $selectedAnimationType");
 
+    // STEP X: Load Trick Trigger
+    selectedTrickTrigger =
+        LocalStorage.get<TrickTrigger>(KeyConstants.savedTrickTriggerKey) ??
+        TrickTrigger.topToBottom;
+    debugPrint("Settings Trick Trigger: $selectedTrickTrigger");
+
     // STEP 5: Load Animation Durations
     for (var duration in AnimationDuration.values) {
       final condition = animationDurationsList.contains(duration);
@@ -185,6 +200,7 @@ class SettingsController extends GetxController {
     _initialAnimationDuration = selectedAnimationDuration;
     _initialMode = selectedMode;
     _initialFeedback = selectedTrickFeedback;
+    _initialTrickTrigger = selectedTrickTrigger;
 
     super.onInit();
   }
@@ -228,9 +244,6 @@ class SettingsController extends GetxController {
       savedNumber = no;
       DialPageController.instance.actualNumber = no;
 
-      // Step 2: Save Swipe Direction
-      await saveSwipeDirection();
-
       // Step 3: Save Settings Action
       await saveSettingsAction();
 
@@ -251,6 +264,9 @@ class SettingsController extends GetxController {
       );
 
       DialPageController.instance.trickFeedbackMode = selectedTrickFeedback;
+
+      // New Step: Save Trick Trigger
+      await saveTrickTrigger();
 
       if (selectedMode.title == "Lock Mode") {
         DialPageController.instance.isLocked = true;
@@ -282,18 +298,7 @@ class SettingsController extends GetxController {
     }
   }
 
-  Future<void> saveSwipeDirection() async {
-    try {
-      // Ready to save Swipe direction Preference Locally
-      await LocalStorage.set(
-        KeyConstants.savedSwipeDirectionKey,
-        swipeDirection,
-      );
-      SwipeController.instance.direction = swipeDirection;
-    } catch (e) {
-      debugPrint("Ran into exception(saveSwipeDirection):$e");
-    }
-  }
+
 
   Future<void> saveSettingsAction() async {
     try {
@@ -305,6 +310,18 @@ class SettingsController extends GetxController {
       DialPageController.instance.settingsAction = settingsAction;
     } catch (e) {
       debugPrint("Ran into exception(saveSettingsAction):$e");
+    }
+  }
+
+  Future<void> saveTrickTrigger() async {
+    try {
+      await LocalStorage.set(
+        KeyConstants.savedTrickTriggerKey,
+        selectedTrickTrigger,
+      );
+      DialPageController.instance.trickTrigger = selectedTrickTrigger;
+    } catch (e) {
+      debugPrint("Ran into exception(saveTrickTrigger):$e");
     }
   }
 
@@ -364,7 +381,8 @@ class SettingsController extends GetxController {
         selectedAnimationType != _initialAnimationType ||
         selectedAnimationDuration != _initialAnimationDuration ||
         selectedMode != _initialMode ||
-        selectedTrickFeedback != _initialFeedback;
+        selectedTrickFeedback != _initialFeedback ||
+        selectedTrickTrigger != _initialTrickTrigger;
   }
 
   Future<bool> handleBackPress() async {
@@ -407,6 +425,7 @@ class SettingsController extends GetxController {
     _initialAnimationDuration = selectedAnimationDuration;
     _initialMode = selectedMode;
     _initialFeedback = selectedTrickFeedback;
+    _initialTrickTrigger = selectedTrickTrigger;
   }
 
   Future<void> deleteSavedNumber(String number) async {

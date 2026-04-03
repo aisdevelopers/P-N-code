@@ -12,7 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../../../utils/constants/key_constants.dart';
 import '../../../utils/services/local_storage.dart';
-import '../../settings/controllers/settings_controller.dart';
+import 'package:pn_code/app/modules/settings/controllers/settings_controller.dart';
 import '../../settings/models/animation_duration_model.dart';
 import '../../settings/models/animation_type_model.dart';
 import '../models/dial_pad_item_model.dart';
@@ -162,6 +162,10 @@ class DialPageController extends GetxController
   set trickFeedbackMode(TrickFeedbackMode value) =>
       _trickFeedbackMode.value = value;
 
+  final Rx<TrickTrigger> _trickTrigger = TrickTrigger.topToBottom.obs;
+  TrickTrigger get trickTrigger => _trickTrigger.value;
+  set trickTrigger(TrickTrigger value) => _trickTrigger.value = value;
+
   String timeBuffer = '';
 
   @override
@@ -217,7 +221,13 @@ class DialPageController extends GetxController
       );
     }
 
+    // STEP X: Load Trick Trigger
+    trickTrigger =
+        LocalStorage.get<TrickTrigger>(KeyConstants.savedTrickTriggerKey) ??
+        TrickTrigger.topToBottom;
+
     debugPrint("Loaded Mode: $mode");
+    debugPrint("Loaded Trigger: $trickTrigger");
     _initBackTapListener();
 
     super.onInit();
@@ -233,11 +243,9 @@ class DialPageController extends GetxController
   void _initBackTapListener() {
     _accelerometerSubscription?.cancel();
     _accelerometerSubscription = userAccelerometerEventStream().listen((event) {
-      final String activeAction = settingsAction;
-      
       // Handle all motion triggers here
-      if (activeAction != SettingsAction.backDoubleTap.name &&
-          activeAction != SettingsAction.shake.name) return;
+      if (trickTrigger != TrickTrigger.backDoubleTap &&
+          trickTrigger != TrickTrigger.shake) return;
 
       final double magnitude = event.x.abs() + event.y.abs() + event.z.abs();
       final now = DateTime.now();
@@ -246,7 +254,7 @@ class DialPageController extends GetxController
           : 1000;
 
       // Handle SHAKE trigger
-      if (activeAction == SettingsAction.shake.name) {
+      if (trickTrigger == TrickTrigger.shake) {
         if (magnitude > _shakeThreshold) {
           if (timeSinceLast > 250) { // Individual shake movement debounce
             _lastTapTime = now;
@@ -272,7 +280,7 @@ class DialPageController extends GetxController
       if (magnitude > _tapThreshold) {
         if (timeSinceLast > 150) {
           _lastTapTime = now;
-          if (activeAction == SettingsAction.backDoubleTap.name) {
+          if (trickTrigger == TrickTrigger.backDoubleTap) {
              if (timeSinceLast < 800) {
                _backTapCount++;
              } else {
@@ -552,7 +560,7 @@ class DialPageController extends GetxController
 
             shouldGlitch = true;
 
-            await Future.delayed(const Duration(milliseconds: 1200));
+            await Future.delayed(const Duration(milliseconds: 2500));
 
             shouldGlitch = false;
           }
@@ -647,7 +655,7 @@ class DialPageController extends GetxController
 
           shouldGlitch = true;
 
-          await Future.delayed(const Duration(milliseconds: 1200));
+          await Future.delayed(const Duration(milliseconds: 2500));
 
           shouldGlitch = false;
         }
@@ -795,7 +803,7 @@ class DialPageController extends GetxController
 
           shouldGlitch = true;
 
-          await Future.delayed(const Duration(milliseconds: 1200));
+          await Future.delayed(const Duration(milliseconds: 2500));
 
           shouldGlitch = false;
         }

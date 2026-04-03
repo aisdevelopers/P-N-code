@@ -7,7 +7,7 @@ import 'package:pn_code/app/routes/app_pages.dart';
 
 import 'widgets/settings_trick_animation_duration_widget.dart';
 import 'widgets/settings_trick_animation_type_widget.dart';
-import 'widgets/swipe_direction_radio_button_widget.dart';
+import 'widgets/trick_trigger_radio_button_widget.dart';
 import 'widgets/settings_access_radio_button_widget.dart';
 import 'widgets/settings_save_button_widget.dart';
 import '../../dial_page/controllers/theme_controller.dart';
@@ -134,8 +134,7 @@ class SettingsView extends GetView<SettingsController> {
 
                             const SettingsNumberDropdownWidget(),
                             const SizedBox(height: 20),
-                            // * Swipe Direction
-                            const SwipeDirectionRadioButtonWidget(),
+                            const TrickTriggerRadioButtonWidget(),
                             const SizedBox(height: 10),
 
                             // * Enable double tap or Long Press

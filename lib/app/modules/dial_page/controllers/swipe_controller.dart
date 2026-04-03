@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pn_code/app/utils/constants/key_constants.dart';
-import '../../../utils/services/local_storage.dart';
-
+import 'package:pn_code/app/modules/settings/controllers/settings_controller.dart';
 import 'dial_page_controller.dart';
 
 enum SwipeDirection { topToBottom, bottomToTop }
@@ -11,7 +9,7 @@ class SwipeController extends GetxController {
   static SwipeController get instance => Get.find();
 
   /// Set which direction to detect
-  String? direction;
+
 
   /// Threshold (fraction of screen height)
   final double thresholdFraction = 0.25; // 25% of screen height
@@ -20,9 +18,6 @@ class SwipeController extends GetxController {
 
   @override
   void onInit() {
-    direction =
-        LocalStorage.get(KeyConstants.savedSwipeDirectionKey) ??
-        SwipeDirection.topToBottom.name;
     super.onInit();
   }
 
@@ -47,9 +42,11 @@ class SwipeController extends GetxController {
     final endY = _lastY;
     final delta = endY - _startY;
 
-    if (direction == SwipeDirection.topToBottom.name && delta > threshold) {
+    final trigger = DialPageController.instance.trickTrigger;
+
+    if (trigger == TrickTrigger.topToBottom && delta > threshold) {
       onSwipeDetected();
-    } else if (direction == SwipeDirection.bottomToTop.name &&
+    } else if (trigger == TrickTrigger.bottomToTop &&
         -delta > threshold) {
       onSwipeDetected();
     }
