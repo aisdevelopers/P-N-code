@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../../utils/helper_functions.dart';
-import '../../../../utils/themes/app_colors.dart';
 import '../../../settings/controllers/settings_controller.dart';
 import '../../../../utils/constants/img_constants.dart';
 import '../../controllers/dial_page_controller.dart';
@@ -24,10 +23,10 @@ class BottomNavBarWidget extends GetView<DialPageController> {
             : Colors.white,
         borderRadius: BorderRadius.circular(50),
         border: Border.all(
-          width: 0.25,
+          width: 0.15,
           color: HelperFunctions.isDarkMode(context)
-              ? AppColors.lightColor
-              : AppColors.darkColor,
+              ? Colors.white.withOpacity(0.1)
+              : Colors.black.withOpacity(0.1),
         ),
       ),
       child: Row(

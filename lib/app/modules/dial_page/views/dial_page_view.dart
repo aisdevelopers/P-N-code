@@ -245,47 +245,54 @@ class _DialPadItemWidgetState extends State<DialPadItemWidget> {
       },
 
       behavior: HitTestBehavior.translucent,
-      child: Container(
-        width: 80,
-        height: 80,
-        decoration: BoxDecoration(
-          color: _isPressed ? pressedColor : normalColor,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 0.075),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              widget.button.digit,
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge!.copyWith(fontSize: 34),
+      child: AnimatedScale(
+        scale: _isPressed ? 1.2 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: _isPressed ? pressedColor : normalColor,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white.withOpacity(0.05),
+              width: 0.5,
             ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.button.digit,
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge!.copyWith(fontSize: 34),
+              ),
 
-            if (widget.button.letters.isNotEmpty)
-              widget.button.digit == '0'
-                  ? Obx(() {
-                      final letters = controller.isMinusMode ? '-' : '+';
+              if (widget.button.letters.isNotEmpty)
+                widget.button.digit == '0'
+                    ? Obx(() {
+                        final letters = controller.isMinusMode ? '-' : '+';
 
-                      return Text(
-                        letters,
+                        return Text(
+                          letters,
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      })
+                    : Text(
+                        widget.button.letters,
                         style: Theme.of(context).textTheme.bodySmall!.copyWith(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
-                      );
-                    })
-                  : Text(
-                      widget.button.letters,
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
                       ),
-                    ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -3,23 +3,59 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../controllers/dial_page_controller.dart';
 
-class BackSpaceButtonWidget extends GetView<DialPageController> {
+class BackSpaceButtonWidget extends StatefulWidget {
   const BackSpaceButtonWidget({super.key});
+
+  @override
+  State<BackSpaceButtonWidget> createState() => _BackSpaceButtonWidgetState();
+}
+
+class _BackSpaceButtonWidgetState extends State<BackSpaceButtonWidget> {
+  final DialPageController controller = Get.find<DialPageController>();
+  bool _isPressed = false;
+
+  void _handleTapDown(TapDownDetails details) {
+    setState(() {
+      _isPressed = true;
+    });
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _isPressed = false;
+        });
+      }
+    });
+  }
+
+  void _handleTapCancel() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _isPressed = false;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 75,
       height: 75,
-      alignment: Alignment.centerLeft,
+      alignment: Alignment.center,
       child: Obx(
         () => AnimatedOpacity(
-          opacity: DialPageController.instance.showBackSpaceButton ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 300),
+          opacity: controller.showBackSpaceButton ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
           child: Visibility(
-            visible: DialPageController.instance.showBackSpaceButton,
-            child: IconButton(
-              color: Colors.grey[700],
+            visible: controller.showBackSpaceButton,
+            child: GestureDetector(
+              onTapDown: _handleTapDown,
+              onTapUp: _handleTapUp,
+              onTapCancel: _handleTapCancel,
               onLongPress: () {
                 HapticFeedback.heavyImpact();
                 controller.displayNumber = '';
@@ -30,8 +66,24 @@ class BackSpaceButtonWidget extends GetView<DialPageController> {
                 controller.forceRevealIndex = 0;
                 controller.fadeStage.value = 0; // Reset animation stage
               },
-              icon: const Icon(Icons.backspace, size: 28),
-              onPressed: DialPageController.instance.onDigitDelete,
+              onTap: controller.onDigitDelete,
+              behavior: HitTestBehavior.translucent,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _isPressed 
+                      ? Colors.grey.withOpacity(0.2) 
+                      : Colors.transparent,
+                ),
+                child: const Icon(
+                  Icons.backspace, 
+                  size: 28,
+                  color: Colors.grey,
+                ),
+              ),
             ),
           ),
         ),

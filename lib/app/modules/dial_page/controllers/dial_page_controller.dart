@@ -560,7 +560,7 @@ class DialPageController extends GetxController
 
             shouldGlitch = true;
 
-            await Future.delayed(const Duration(milliseconds: 2500));
+            await Future.delayed(const Duration(milliseconds: 3000));
 
             shouldGlitch = false;
           }
