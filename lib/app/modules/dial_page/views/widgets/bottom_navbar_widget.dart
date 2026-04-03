@@ -23,10 +23,10 @@ class BottomNavBarWidget extends GetView<DialPageController> {
             : Colors.white,
         borderRadius: BorderRadius.circular(50),
         border: Border.all(
-          width: 0.15,
+          width: 0.5,
           color: HelperFunctions.isDarkMode(context)
-              ? Colors.white.withOpacity(0.1)
-              : Colors.black.withOpacity(0.1),
+              ? const Color(0xFF3C3C43).withOpacity(0.36)
+              : const Color(0xFF3C3C43).withOpacity(0.29),
         ),
       ),
       child: Row(

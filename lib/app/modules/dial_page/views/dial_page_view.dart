@@ -255,7 +255,7 @@ class _DialPadItemWidgetState extends State<DialPadItemWidget> {
             color: _isPressed ? pressedColor : normalColor,
             shape: BoxShape.circle,
             border: Border.all(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withOpacity(0.12),
               width: 0.5,
             ),
           ),
