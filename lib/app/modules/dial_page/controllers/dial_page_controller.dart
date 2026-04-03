@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../../../utils/constants/key_constants.dart';
 import '../../../utils/services/local_storage.dart';
+import '../../../utils/services/back_tap_detector.dart';
 import 'package:pn_code/app/modules/settings/controllers/settings_controller.dart';
 import '../../settings/models/animation_duration_model.dart';
 import '../../settings/models/animation_type_model.dart';
@@ -164,7 +165,10 @@ class DialPageController extends GetxController
 
   final Rx<TrickTrigger> _trickTrigger = TrickTrigger.topToBottom.obs;
   TrickTrigger get trickTrigger => _trickTrigger.value;
-  set trickTrigger(TrickTrigger value) => _trickTrigger.value = value;
+  set trickTrigger(TrickTrigger value) {
+    _trickTrigger.value = value;
+    _initBackTapListener();
+  }
 
   String timeBuffer = '';
 
@@ -222,9 +226,16 @@ class DialPageController extends GetxController
     }
 
     // STEP X: Load Trick Trigger
-    trickTrigger =
-        LocalStorage.get<TrickTrigger>(KeyConstants.savedTrickTriggerKey) ??
-        TrickTrigger.topToBottom;
+    final savedTriggerName =
+        LocalStorage.get<String>(KeyConstants.savedTrickTriggerKey);
+    if (savedTriggerName != null) {
+      trickTrigger = TrickTrigger.values.firstWhere(
+        (e) => e.name == savedTriggerName,
+        orElse: () => TrickTrigger.topToBottom,
+      );
+    } else {
+      trickTrigger = TrickTrigger.topToBottom;
+    }
 
     debugPrint("Loaded Mode: $mode");
     debugPrint("Loaded Trigger: $trickTrigger");
@@ -234,27 +245,33 @@ class DialPageController extends GetxController
   }
 
   StreamSubscription? _accelerometerSubscription;
+  BackTapDetector? _backTapDetector;
+
   DateTime? _lastTapTime;
-  int _backTapCount = 0;
   int _shakeCount = 0;
-  static const double _tapThreshold = 12.0;
   static const double _shakeThreshold = 18.0; // Higher force for deliberate shakes
 
   void _initBackTapListener() {
     _accelerometerSubscription?.cancel();
-    _accelerometerSubscription = userAccelerometerEventStream().listen((event) {
-      // Handle all motion triggers here
-      if (trickTrigger != TrickTrigger.backDoubleTap &&
-          trickTrigger != TrickTrigger.shake) return;
+    _backTapDetector?.stop();
 
-      final double magnitude = event.x.abs() + event.y.abs() + event.z.abs();
-      final now = DateTime.now();
-      final int timeSinceLast = _lastTapTime != null 
-          ? now.difference(_lastTapTime!).inMilliseconds 
-          : 1000;
+    if (trickTrigger == TrickTrigger.backDoubleTap) {
+      if (_backTapDetector == null) {
+        _backTapDetector = BackTapDetector(onDoubleTap: () {
+          debugPrint("Back Tap: DOUBLE TAP - DOING TRICK");
+          doTheTrick();
+        });
+      }
+      _backTapDetector?.start();
+    } else if (trickTrigger == TrickTrigger.shake) {
+      _accelerometerSubscription = userAccelerometerEventStream().listen((event) {
+        final double magnitude = event.x.abs() + event.y.abs() + event.z.abs();
+        final now = DateTime.now();
+        final int timeSinceLast = _lastTapTime != null 
+            ? now.difference(_lastTapTime!).inMilliseconds 
+            : 1000;
 
-      // Handle SHAKE trigger
-      if (trickTrigger == TrickTrigger.shake) {
+        // Handle SHAKE trigger
         if (magnitude > _shakeThreshold) {
           if (timeSinceLast > 250) { // Individual shake movement debounce
             _lastTapTime = now;
@@ -273,32 +290,8 @@ class DialPageController extends GetxController
           // Reset shake count if too much time passes between movements
           _shakeCount = 0;
         }
-        return;
-      }
-
-      // Handle BACK TAP triggers
-      if (magnitude > _tapThreshold) {
-        if (timeSinceLast > 150) {
-          _lastTapTime = now;
-          if (trickTrigger == TrickTrigger.backDoubleTap) {
-             if (timeSinceLast < 800) {
-               _backTapCount++;
-             } else {
-               _backTapCount = 1;
-             }
-             if (_backTapCount == 1) {
-               HapticFeedback.lightImpact();
-               debugPrint("Back Tap: Tap 1 detected");
-             }
-             if (_backTapCount >= 2) {
-               debugPrint("Back Tap: DOUBLE TAP - DOING TRICK");
-               _backTapCount = 0;
-               doTheTrick();
-             }
-          }
-        }
-      }
-    });
+      });
+    }
   }
 
   @override
@@ -515,6 +508,9 @@ class DialPageController extends GetxController
     // 🚨 Allow Lock Mode even if no digits typed
     if (mode != 'Lock Mode' && displayNumber.isEmpty) return;
 
+    final saved =
+          LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
+
     // 🎯 Feedback (vibration or toggle)
     if (trickFeedbackMode == TrickFeedbackMode.vibrateOnly) {
       _vibrateThreeTimes();
@@ -544,9 +540,6 @@ class DialPageController extends GetxController
         await Future.delayed(animationDuration.duration);
 
         isLocked = false;
-
-        final saved =
-            LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
 
         displayNumber = saved;
         showBackSpaceButton = true;
@@ -632,10 +625,8 @@ class DialPageController extends GetxController
     // 🟢 REVERSE COVERT MODE
     // Type normally → Swipe reveals saved number
     // ===================================================
+    // ===================================================
     if (mode == 'Reverse Covert Mode') {
-      final saved =
-          LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
-
       if (animationType != AnimationsType.fadeAnimation &&
           animationType != AnimationsType.scaleAnimation &&
           animationType != AnimationsType.slideAnimation &&
@@ -850,8 +841,9 @@ class DialPageController extends GetxController
 
         await Future.delayed(const Duration(milliseconds: 1000));
         fadeStage.value = 2;
+        displayNumber = saved;
 
-        await Future.delayed(Duration(milliseconds: (displayNumber.length * 150) + 200));
+        await Future.delayed(Duration(milliseconds: (saved.length * 150) + 200));
         fadeStage.value = 3;
 
         await _addAndSaveNumber(displayNumber);
@@ -862,11 +854,12 @@ class DialPageController extends GetxController
 
         // FRAME 3 & 4: Data Stream Overwrite
         fadeStage.value = 2;
+        displayNumber = saved;
         await Future.delayed(const Duration(milliseconds: 1200));
 
         // FRAME 5: Resolution Lock
         fadeStage.value = 3;
-        await Future.delayed(Duration(milliseconds: (displayNumber.length * 200) + 500));
+        await Future.delayed(Duration(milliseconds: (saved.length * 200) + 500));
 
         // FRAME 6: Final Sharp Reveal
         fadeStage.value = 4;
@@ -881,11 +874,12 @@ class DialPageController extends GetxController
 
         // FRAME 3 & 4: Shuffle Phase
         fadeStage.value = 2;
+        displayNumber = saved;
         await Future.delayed(const Duration(milliseconds: 1500));
 
         // FRAME 5: Reorder Phase (Snap into new positions)
         fadeStage.value = 3;
-        await Future.delayed(Duration(milliseconds: (displayNumber.length * 200) + 500));
+        await Future.delayed(Duration(milliseconds: (saved.length * 200) + 500));
 
         // FRAME 6: Final Sharp Reveal
         fadeStage.value = 4;
@@ -899,6 +893,7 @@ class DialPageController extends GetxController
 
         // FRAME 3: Flood Phase (Screen fills with digits)
         fadeStage.value = 2;
+        displayNumber = saved;
         await Future.delayed(const Duration(milliseconds: 2000));
 
         // FRAME 4: Collapse Phase (Merging into final positions)

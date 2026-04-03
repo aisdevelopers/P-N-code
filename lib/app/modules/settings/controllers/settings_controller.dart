@@ -160,9 +160,16 @@ class SettingsController extends GetxController {
     debugPrint("Settings Animation Type: $selectedAnimationType");
 
     // STEP X: Load Trick Trigger
-    selectedTrickTrigger =
-        LocalStorage.get<TrickTrigger>(KeyConstants.savedTrickTriggerKey) ??
-        TrickTrigger.topToBottom;
+    final savedTriggerName =
+        LocalStorage.get<String>(KeyConstants.savedTrickTriggerKey);
+    if (savedTriggerName != null) {
+      selectedTrickTrigger = TrickTrigger.values.firstWhere(
+        (e) => e.name == savedTriggerName,
+        orElse: () => TrickTrigger.topToBottom,
+      );
+    } else {
+      selectedTrickTrigger = TrickTrigger.topToBottom;
+    }
     debugPrint("Settings Trick Trigger: $selectedTrickTrigger");
 
     // STEP 5: Load Animation Durations
@@ -317,7 +324,7 @@ class SettingsController extends GetxController {
     try {
       await LocalStorage.set(
         KeyConstants.savedTrickTriggerKey,
-        selectedTrickTrigger,
+        selectedTrickTrigger.name, // Save as string
       );
       DialPageController.instance.trickTrigger = selectedTrickTrigger;
     } catch (e) {
