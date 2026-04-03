@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pn_code/app/utils/constants/key_constants.dart';
 import '../../../utils/services/local_storage.dart';
-import 'package:pn_code/app/modules/settings/controllers/settings_controller.dart';
+
 import 'dial_page_controller.dart';
 
 enum SwipeDirection { topToBottom, bottomToTop }
@@ -28,8 +28,7 @@ class SwipeController extends GetxController {
 
   void onVerticalDragStart(DragStartDetails details) {
     if (DialPageController.instance.mode == 'Time Mode' ||
-        DialPageController.instance.mode == 'Force Mode' ||
-        DialPageController.instance.settingsAction == SettingsAction.backTap.name) {
+        DialPageController.instance.mode == 'Force Mode') {
       return;
     }
 
@@ -38,8 +37,7 @@ class SwipeController extends GetxController {
 
   void onVerticalDragEnd(DragEndDetails details, BuildContext context) {
     if (DialPageController.instance.mode == 'Time Mode' ||
-        DialPageController.instance.mode == 'Force Mode' ||
-        DialPageController.instance.settingsAction == SettingsAction.backTap.name) {
+        DialPageController.instance.mode == 'Force Mode') {
       return;
     }
 

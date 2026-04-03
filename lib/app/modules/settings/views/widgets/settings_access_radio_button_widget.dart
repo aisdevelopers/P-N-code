@@ -53,22 +53,6 @@ class SettingsAccessRadioButtonWidget extends GetView<SettingsController> {
               Row(
                 children: [
                   Radio(
-                    value: SettingsAction.backTap.name,
-                    groupValue: controller.settingsAction,
-                    onChanged: (val) {
-                      if (val != null) controller.settingsAction = val;
-                    },
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    "Back Tap",
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Radio(
                     value: SettingsAction.backDoubleTap.name,
                     groupValue: controller.settingsAction,
                     onChanged: (val) {

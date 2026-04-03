@@ -169,36 +169,78 @@ class DialPadWidget extends GetView<DialPageController> {
   }
 }
 
-// ignore: must_be_immutable
-class DialPadItemWidget extends StatelessWidget {
-  DialPadItemWidget({super.key, required this.button});
-  DialPageController controller = Get.find<DialPageController>();
-
+class DialPadItemWidget extends StatefulWidget {
+  const DialPadItemWidget({super.key, required this.button});
   final DialPadItem button;
 
   @override
+  State<DialPadItemWidget> createState() => _DialPadItemWidgetState();
+}
+
+class _DialPadItemWidgetState extends State<DialPadItemWidget> {
+  final DialPageController controller = Get.find<DialPageController>();
+  bool _isPressed = false;
+
+  void _handleTapDown(TapDownDetails details) {
+    setState(() {
+      _isPressed = true;
+    });
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    // Ensure the pressed state is visible even on quick taps
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _isPressed = false;
+        });
+      }
+    });
+  }
+
+  void _handleTapCancel() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _isPressed = false;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final bool isDark = HelperFunctions.isDarkMode();
+    
+    // Default iOS color logic for dialpad buttons
+    final Color normalColor = isDark ? AppColors.darkDialButtonColor : Colors.grey.shade300;
+    // Glowing/pressed colors
+    final Color pressedColor = isDark ? const Color(0xFF3A3A3A) : const Color(0xFFB5B5B5);
+
     return GestureDetector(
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
       onLongPress: () {
-        if (button.digit == '#') {
+        if (widget.button.digit == '#') {
           controller.showSavedNumberWhileHolding();
         }
       },
 
       onLongPressUp: () {
-        if (button.digit == '#') {
+        if (widget.button.digit == '#') {
           controller.hideSavedNumberAfterHold();
         }
       },
 
       onTap: () async {
-        if (button.digit == '#') {
+        if (widget.button.digit == '#') {
           // Only type if NOT previewing
           if (!controller.isPreviewMode) {
             await controller.onDigitTap('#');
           }
         } else {
-          await controller.onDigitTap(button.digit);
+          await controller.onDigitTap(widget.button.digit);
         }
       },
 
@@ -207,9 +249,7 @@ class DialPadItemWidget extends StatelessWidget {
         width: 80,
         height: 80,
         decoration: BoxDecoration(
-          color: HelperFunctions.isDarkMode()
-              ? AppColors.darkDialButtonColor
-              : Colors.grey.shade300,
+          color: _isPressed ? pressedColor : normalColor,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.white, width: 0.075),
         ),
@@ -218,15 +258,15 @@ class DialPadItemWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              button.digit,
+              widget.button.digit,
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge!.copyWith(fontSize: 34),
             ),
 
-            if (button.letters.isNotEmpty)
-              button.digit == '0'
+            if (widget.button.letters.isNotEmpty)
+              widget.button.digit == '0'
                   ? Obx(() {
                       final letters = controller.isMinusMode ? '-' : '+';
 
@@ -239,7 +279,7 @@ class DialPadItemWidget extends StatelessWidget {
                       );
                     })
                   : Text(
-                      button.letters,
+                      widget.button.letters,
                       style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,

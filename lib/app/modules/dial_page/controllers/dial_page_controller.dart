@@ -236,8 +236,7 @@ class DialPageController extends GetxController
       final String activeAction = settingsAction;
       
       // Handle all motion triggers here
-      if (activeAction != SettingsAction.backTap.name && 
-          activeAction != SettingsAction.backDoubleTap.name &&
+      if (activeAction != SettingsAction.backDoubleTap.name &&
           activeAction != SettingsAction.shake.name) return;
 
       final double magnitude = event.x.abs() + event.y.abs() + event.z.abs();
@@ -273,10 +272,7 @@ class DialPageController extends GetxController
       if (magnitude > _tapThreshold) {
         if (timeSinceLast > 150) {
           _lastTapTime = now;
-          if (activeAction == SettingsAction.backTap.name) {
-             debugPrint("Back Tap: SINGLE TAP - DOING TRICK");
-             doTheTrick();
-          } else if (activeAction == SettingsAction.backDoubleTap.name) {
+          if (activeAction == SettingsAction.backDoubleTap.name) {
              if (timeSinceLast < 800) {
                _backTapCount++;
              } else {
