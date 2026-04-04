@@ -478,22 +478,34 @@ class DialPageController extends GetxController
 
     // NORMAL MODES
     if (displayNumber.isNotEmpty) {
-      revealAnswer = false;
-      hasRevealed = false;
-      fadeStage.value = 0;
+      // After a trick reveal, keep hasRevealed so displayText stays unmasked.
+      // Only reset reveal state when number is fully cleared.
+      if (!hasRevealed) {
+        revealAnswer = false;
+        fadeStage.value = 0;
+      }
 
       displayNumber = displayNumber.substring(0, displayNumber.length - 1);
     }
 
     if (displayNumber.isEmpty) {
+      // Full clear → reset everything
       showBackSpaceButton = false;
+      revealAnswer = false;
+      hasRevealed = false;
       fadeStage.value = 0;
     }
   }
 
   String get displayText {
-    // Covert Mode → Show saved number while typing
+    // Covert Mode → Show saved number while typing,
+    // but ONLY after trick is FULLY done (hasRevealed=true), show raw typed number.
+    // During the trick animation (revealAnswer=true but hasRevealed=false),
+    // keep showing the MASKED value so old/new animation values are correct.
     if (mode == 'Covert Mode') {
+      if (hasRevealed) {
+        return displayNumber;
+      }
       String t = '';
       for (var i = 0; i < displayNumber.length; i++) {
         if (i < actualNumber.length) {
@@ -503,12 +515,10 @@ class DialPageController extends GetxController
       return t;
     }
 
-    // Reverse Covert Mode → Show typed digits normally
     if (mode == 'Reverse Covert Mode') {
       return displayNumber;
     }
 
-    // Time Mode → Show typed digits normally
     if (mode == 'Time Mode') {
       return displayNumber;
     }
@@ -810,126 +820,117 @@ class DialPageController extends GetxController
       if (animationType == AnimationsType.glitchyAnimation) {
         if (!hasRevealed) {
           revealAnswer = true;
-          hasRevealed = true;
 
           await _addAndSaveNumber(displayNumber);
 
           shouldGlitch = true;
-
           await Future.delayed(const Duration(milliseconds: 2500));
-
           shouldGlitch = false;
+
+          // ✨ Trick done − transition to post-reveal editing state
+          hasRevealed = true;
+          revealAnswer = false;
+          fadeStage.value = 0;
         }
       } else if (animationType == AnimationsType.scaleAnimation) {
-        fadeStage.value = 1; // split old number
-
+        fadeStage.value = 1;
         await Future.delayed(const Duration(milliseconds: 500));
-
-        // displayNumber = saved;
-
-        fadeStage.value = 2; // bring new halves
-
+        fadeStage.value = 2;
         await Future.delayed(const Duration(milliseconds: 500));
-
-        fadeStage.value = 3; // final merged
-
+        fadeStage.value = 3;
         await _addAndSaveNumber(displayNumber);
+        // ✨ Trick done
+        hasRevealed = true;
+        revealAnswer = false;
+        fadeStage.value = 0;
       } else if (animationType == AnimationsType.fadeAnimation) {
-        fadeStage.value = 1; // digits go up
-
+        fadeStage.value = 1;
         await Future.delayed(const Duration(milliseconds: 800));
-
-        // fadeStage.value = 3; // blank
-
         await Future.delayed(const Duration(milliseconds: 800));
-
-        fadeStage.value = 2; // reveal real digits
-
+        fadeStage.value = 2;
         await _addAndSaveNumber(displayNumber);
+        // ✨ Trick done
+        hasRevealed = true;
+        revealAnswer = false;
+        fadeStage.value = 0;
       } else if (animationType == AnimationsType.slideAnimation) {
         fadeStage.value = 1;
-
         await Future.delayed(const Duration(milliseconds: 450));
-
         fadeStage.value = 2;
-
         await Future.delayed(const Duration(seconds: 2));
-
         fadeStage.value = 3;
-
         await _addAndSaveNumber(displayNumber);
+        // ✨ Trick done
+        hasRevealed = true;
+        revealAnswer = false;
+        fadeStage.value = 0;
       } else if (animationType == AnimationsType.slotMachineAnimation) {
         fadeStage.value = 1;
-
         await Future.delayed(const Duration(milliseconds: 1000));
         fadeStage.value = 2;
         displayNumber = saved;
-
         await Future.delayed(Duration(milliseconds: (saved.length * 150) + 200));
         fadeStage.value = 3;
-
         await _addAndSaveNumber(displayNumber);
+        // ✨ Trick done
+        hasRevealed = true;
+        revealAnswer = false;
+        fadeStage.value = 0;
       } else if (animationType == AnimationsType.dataStreamAnimation) {
-        // FRAME 2: Trigger (Interference)
         fadeStage.value = 1;
         await Future.delayed(const Duration(milliseconds: 400));
-
-        // FRAME 3 & 4: Data Stream Overwrite
         fadeStage.value = 2;
         displayNumber = saved;
         await Future.delayed(const Duration(milliseconds: 1200));
-
-        // FRAME 5: Resolution Lock
         fadeStage.value = 3;
         await Future.delayed(Duration(milliseconds: (saved.length * 200) + 500));
-
-        // FRAME 6: Final Sharp Reveal
         fadeStage.value = 4;
         await Future.delayed(const Duration(milliseconds: 500));
-        // Keep stage 4 stable
-
         await _addAndSaveNumber(displayNumber);
+        // ✨ Trick done
+        hasRevealed = true;
+        revealAnswer = false;
+        fadeStage.value = 0;
       } else if (animationType == AnimationsType.digitShuffleDeckAnimation) {
-        // FRAME 2: Trigger (Lift Cards)
         fadeStage.value = 1;
         await Future.delayed(const Duration(milliseconds: 400));
-
-        // FRAME 3 & 4: Shuffle Phase
         fadeStage.value = 2;
         displayNumber = saved;
         await Future.delayed(const Duration(milliseconds: 1500));
-
-        // FRAME 5: Reorder Phase (Snap into new positions)
         fadeStage.value = 3;
         await Future.delayed(Duration(milliseconds: (saved.length * 200) + 500));
-
-        // FRAME 6: Final Sharp Reveal
         fadeStage.value = 4;
         await Future.delayed(const Duration(milliseconds: 500));
-
         await _addAndSaveNumber(displayNumber);
+        // ✨ Trick done
+        hasRevealed = true;
+        revealAnswer = false;
+        fadeStage.value = 0;
       } else if (animationType == AnimationsType.digitCloneFlood) {
-        // FRAME 2: Trigger (Initial Duplication)
         fadeStage.value = 1;
         await Future.delayed(const Duration(milliseconds: 500));
-
-        // FRAME 3: Flood Phase (Screen fills with digits)
         fadeStage.value = 2;
         displayNumber = saved;
         await Future.delayed(const Duration(milliseconds: 2000));
-
-        // FRAME 4: Collapse Phase (Merging into final positions)
         fadeStage.value = 3;
         await Future.delayed(const Duration(milliseconds: 1000));
-
-        // FRAME 5: Final Sharp Reveal
         fadeStage.value = 4;
         await Future.delayed(const Duration(milliseconds: 500));
-
         await _addAndSaveNumber(displayNumber);
+        // ✨ Trick done
+        hasRevealed = true;
+        revealAnswer = false;
+        fadeStage.value = 0;
       } else {
+        // scramble / simple / wave / typewriter etc.
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);
+        // Wait for the UI animation (e.g. scramble ~2s) to finish
+        await Future.delayed(const Duration(milliseconds: 2500));
+        // ✨ Trick done
+        hasRevealed = true;
+        revealAnswer = false;
+        fadeStage.value = 0;
       }
       return;
     }
