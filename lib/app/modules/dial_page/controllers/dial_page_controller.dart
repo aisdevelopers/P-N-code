@@ -552,6 +552,21 @@ class DialPageController extends GetxController
         isMinusMode = false;
       });
     }
+
+    // 🟡 Helper: waits the full delay, but flips to '+' exactly 1s before animation
+    Future<void> waitWithPlusCue() async {
+      final totalMs = animationDuration.duration.inMilliseconds;
+      const cueMs = 1000; // 1 second before animation
+      if (totalMs > cueMs) {
+        await Future.delayed(Duration(milliseconds: totalMs - cueMs));
+        isMinusMode = true;  // ✨ Show '+' to magician — snap now!
+        await Future.delayed(const Duration(milliseconds: cueMs));
+        isMinusMode = false; // back to '-'
+      } else {
+        // Delay is 0 or less than 1s — just wait, no cue needed
+        await Future.delayed(animationDuration.duration);
+      }
+    }
     // ===================================================
     // 🔒 LOCK MODE (Black screen toggle + reveal saved number)
     // ===================================================
@@ -569,7 +584,7 @@ class DialPageController extends GetxController
       } else {
         // 🔓 Unlocking
 
-        await Future.delayed(animationDuration.duration);
+        await waitWithPlusCue();
 
         isLocked = false;
 
@@ -650,8 +665,8 @@ class DialPageController extends GetxController
     revealAnswer = false;
     shouldFlicker = false;
 
-    // Small delay if animation duration is set
-    await Future.delayed(animationDuration.duration);
+    // Small delay if animation duration is set, with '+' cue 1s before
+    await waitWithPlusCue();
 
     // ===================================================
     // 🟢 REVERSE COVERT MODE
