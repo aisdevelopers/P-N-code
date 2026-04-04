@@ -87,7 +87,10 @@ class DialPageController extends GetxController
 
   final RxString _mode = 'Covert Mode'.obs;
   String get mode => _mode.value;
-  set mode(String value) => _mode.value = value;
+  set mode(String value) {
+    _mode.value = value;
+    _setModeAnimation();
+  }
 
   final RxBool _revealAnswer = false.obs;
   bool get revealAnswer => _revealAnswer.value;
@@ -143,6 +146,23 @@ class DialPageController extends GetxController
   set shouldFlicker(bool value) {
     _shouldFlicker.value = value;
     update();
+  }
+
+  void _setModeAnimation() {
+    switch (mode) {
+      case 'Lock Mode':
+        animationType = AnimationsType.glitchyAnimation;
+        break;
+      case 'Covert Mode':
+      case 'Reverse Covert Mode':
+        animationType = AnimationsType.scrambleAnimation;
+        break;
+      case 'Time Mode':
+        animationType = AnimationsType.simpleAnimation;
+        break;
+      default:
+        break;
+    }
   }
 
   // final RxBool _isSlideAnimating = false.obs;
@@ -510,6 +530,8 @@ class DialPageController extends GetxController
 
     final saved =
           LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
+
+    _setModeAnimation();
 
     // 🎯 Feedback (vibration or toggle)
     if (trickFeedbackMode == TrickFeedbackMode.vibrateOnly) {

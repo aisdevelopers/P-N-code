@@ -72,6 +72,9 @@ class SettingsView extends GetView<SettingsController> {
                           children: [
                             const SettingsModeDropdownWidget(),
                             const SizedBox(height: 20),
+                            // * Text Animation type
+                            const SettingsTrickAnimationTypeWidget(),
+                            const SizedBox(height: 10),
 
                             Obx(() {
                               if (controller.selectedMode.title !=
@@ -142,10 +145,6 @@ class SettingsView extends GetView<SettingsController> {
                             const SizedBox(height: 10),
 
                             const SettingsFeedbackTrickRadioButtton(),
-                            const SizedBox(height: 10),
-
-                            // * Text Animation type
-                            const SettingsTrickAnimationTypeWidget(),
                             const SizedBox(height: 10),
 
                             // * Animation Transition Duration

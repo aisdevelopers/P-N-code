@@ -34,7 +34,23 @@ class SettingsController extends GetxController {
   );
 
   ModeModel get selectedMode => _selectedMode.value;
-  set selectedMode(ModeModel value) => _selectedMode.value = value;
+  set selectedMode(ModeModel value) {
+    _selectedMode.value = value;
+    switch (value.title) {
+      case 'Covert Mode':
+      case 'Reverse Covert Mode':
+        selectedAnimationType = AnimationsType.scrambleAnimation;
+        break;
+      case 'Lock Mode':
+        selectedAnimationType = AnimationsType.glitchyAnimation;
+        break;
+      case 'Time Mode':
+        selectedAnimationType = AnimationsType.simpleAnimation;
+        break;
+      default:
+        break;
+    }
+  }
 
   final RxnString _savedNumber = RxnString();
 
