@@ -270,14 +270,14 @@ class SettingsController extends GetxController {
       // Step 3: Save Settings Action
       await saveSettingsAction();
 
-      // Step 4: Save Animation Type
-      await saveAnimationType();
-
-      // Step 5: Save Animation Duration
+      // Step 4: Save Animation Duration
       await saveAnimationDuration();
 
-      // Step 6: Save Mode
+      // Step 5: Save Mode — sets mode in DialPageController which may reset animation to mode default
       await saveMode();
+
+      // Step 6: Save Animation Type LAST — re-applies user's dropdown choice over mode default
+      await saveAnimationType();
 
       await LocalStorage.set(KeyConstants.addOneMinuteKey, addOneMinute);
 

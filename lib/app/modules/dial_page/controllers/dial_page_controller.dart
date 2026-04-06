@@ -212,12 +212,16 @@ class DialPageController extends GetxController
       );
     });
 
-    // STEP 3: Loading the Animation Type from Local Storage
+    // STEP 3: Load Mode — triggers _setModeAnimation() which sets the mode-default animation.
+    mode = LocalStorage.get<String>(KeyConstants.savedModeKey) ?? 'Covert Mode';
+
+    // STEP 4: Load saved Animation Type AFTER mode — overrides the mode default so the
+    // user's dropdown selection from settings always takes priority.
     animationType =
         LocalStorage.get(KeyConstants.savedSettingsAnimationTypeKey) ??
-        AnimationsType.simpleAnimation;
+        animationType; // Keep mode-default if user never picked a custom one.
 
-    // STEP 4: Loading the Animation Duration from Local Storage
+    // STEP 5: Loading the Animation Duration from Local Storage
     animationDuration =
         LocalStorage.get<AnimationDuration>(
           KeyConstants.savedSettingsAnimationDurationKey,
@@ -231,8 +235,6 @@ class DialPageController extends GetxController
       frequency: Duration(milliseconds: 50),
       colorChannelShift: ColorChannelShift(spread: 100),
     );
-
-    mode = LocalStorage.get<String>(KeyConstants.savedModeKey) ?? 'Covert Mode';
 
     final savedFeedback = LocalStorage.get<String>(
       KeyConstants.savedTrickFeedbackModeKey,
@@ -541,7 +543,7 @@ class DialPageController extends GetxController
     final saved =
           LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
 
-    _setModeAnimation();
+    // ✅ animationType is already set by the user's dropdown selection — do NOT reset it here.
 
     // 🎯 Feedback (vibration or toggle)
     if (trickFeedbackMode == TrickFeedbackMode.vibrateOnly) {
