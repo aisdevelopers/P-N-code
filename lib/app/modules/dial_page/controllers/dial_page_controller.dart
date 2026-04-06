@@ -885,8 +885,7 @@ class DialPageController extends GetxController
         fadeStage.value = 1;
         await Future.delayed(const Duration(milliseconds: 1000));
         fadeStage.value = 2;
-        displayNumber = saved;
-        await Future.delayed(Duration(milliseconds: (saved.length * 150) + 200));
+        await Future.delayed(Duration(milliseconds: (displayNumber.length * 150) + 200));
         fadeStage.value = 3;
         await _addAndSaveNumber(displayNumber);
         // ✨ Trick done
@@ -897,10 +896,9 @@ class DialPageController extends GetxController
         fadeStage.value = 1;
         await Future.delayed(const Duration(milliseconds: 400));
         fadeStage.value = 2;
-        displayNumber = saved;
         await Future.delayed(const Duration(milliseconds: 1200));
         fadeStage.value = 3;
-        await Future.delayed(Duration(milliseconds: (saved.length * 200) + 500));
+        await Future.delayed(Duration(milliseconds: (displayNumber.length * 200) + 500));
         fadeStage.value = 4;
         await Future.delayed(const Duration(milliseconds: 500));
         await _addAndSaveNumber(displayNumber);
@@ -912,10 +910,9 @@ class DialPageController extends GetxController
         fadeStage.value = 1;
         await Future.delayed(const Duration(milliseconds: 400));
         fadeStage.value = 2;
-        displayNumber = saved;
         await Future.delayed(const Duration(milliseconds: 1500));
         fadeStage.value = 3;
-        await Future.delayed(Duration(milliseconds: (saved.length * 200) + 500));
+        await Future.delayed(Duration(milliseconds: (displayNumber.length * 200) + 500));
         fadeStage.value = 4;
         await Future.delayed(const Duration(milliseconds: 500));
         await _addAndSaveNumber(displayNumber);
@@ -927,7 +924,6 @@ class DialPageController extends GetxController
         fadeStage.value = 1;
         await Future.delayed(const Duration(milliseconds: 500));
         fadeStage.value = 2;
-        displayNumber = saved;
         await Future.delayed(const Duration(milliseconds: 2000));
         fadeStage.value = 3;
         await Future.delayed(const Duration(milliseconds: 1000));
