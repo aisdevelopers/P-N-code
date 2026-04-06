@@ -2,28 +2,24 @@
 
 ## Current Status
 - **Covert Mode Magic Reveal**: ✅ FIXED & VERIFIED
+- **Back-Tap Trigger during Typing**: ✅ FIXED (ignored while typing)
 - **Orientation**: Application is strictly locked to Portrait mode.
 - **Environment**: Flutter Mobile/Tab with Hive Backend.
 - **Architecture**: GetX (feature-first).
 
 ## Modified Files (Last Session)
+- **`lib/app/utils/services/back_tap_detector.dart`**:
+  - Added `isTyping` flag to pause detection while the user is actively entering digits.
 - **`lib/app/modules/dial_page/controllers/dial_page_controller.dart`**:
-  - Fixed `displayText` getter: only bypasses Covert Mode masking when `hasRevealed == true` (NOT `revealAnswer`). This ensures the animation sees the correct masked "old" value during the trick.
-  - Fixed all Covert Mode branches in `doTheTrick()`: each now ends with `hasRevealed = true`, `revealAnswer = false`, `fadeStage.value = 0` to cleanly transition to post-reveal editing state.
-  - Fixed `onDigitDelete`: preserves `hasRevealed` during backspace. Only resets everything when the number is fully cleared.
+  - Added `_typingTimer` (600ms) to manage the "typing" state window.
+  - In `onDigitTap`, restarts the timer and sets `isTyping = true` in the detector.
 
-## Key Architecture — Covert Mode State Machine
+## Key Architecture — Back-Tap Ignore Logic
 
-| State | `hasRevealed` | `revealAnswer` | `fadeStage` | `displayText` returns |
-|---|---|---|---|---|
-| Pre-reveal (typing) | `false` | `false` | `0` | masked "987" |
-| During animation | `false` | `true` or >0 | `>0` | masked "987" ← MUST stay masked |
-| Post-reveal (editing) | `true` | `false` | `0` | raw typed "123" |
-
-- `revealAnswer` = "animation playing now" → masking stays ON so animation has something to transform
-- `hasRevealed` = "trick fully done" → masking turns OFF permanently for clean backspace/editing
+- `BackTapDetector.isTyping`: When `true`, the `idle` state of the detector immediately returns, preventing any tap detection sequence from starting.
+- `DialPageController._typingTimer`: A 600ms debounce timer. Each keytap sets `isTyping = true` and refreshes the timer. Only after 600ms of inactivity does `isTyping` flip back to `false`, re-enabling the double back-tap trick.
 
 ## Next 3 Tasks
-1. End-to-end test all animation types in Covert Mode (scramble, slide, slot machine, etc.)
-2. Verify Reverse Covert Mode and Lock Mode do not regress.
+1. Verify if `Shake` trigger also needs similar suppression during typing.
+2. End-to-end test all animation types in Covert Mode.
 3. Review UI/UX responsiveness across different screen sizes.

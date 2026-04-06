@@ -44,6 +44,9 @@ class BackTapDetector {
   DateTime? _stateStartTime;
   DateTime? _lastSuccessTime;
 
+  /// Flag to pause detection during active typing (set by external controller)
+  bool isTyping = false;
+
   BackTapDetector({
     required this.onDoubleTap,
     this.tapPIThreshold = 1.20,
@@ -113,6 +116,8 @@ class BackTapDetector {
 
     switch (_state) {
       case _BTDState.idle:
+        if (isTyping) return; // 🛑 Ignore detection while typing
+
         if (pi > 1.0 && rawMag > 0.8) {
            if (kDebugMode && rawMag > 1.3) {
              print("BTD POTENTIAL: PI=${pi.toStringAsFixed(2)} Mag=${rawMag.toStringAsFixed(2)} Gyro(avg3)=${avgGyro.toStringAsFixed(2)}");

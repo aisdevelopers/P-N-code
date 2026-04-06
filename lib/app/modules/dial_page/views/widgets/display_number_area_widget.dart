@@ -563,9 +563,7 @@ class _SlotMachineRevealAnimation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Always use newText (real digits) during typing and early stages
-    // as per user request to show real digits instead of the covert mapping.
-    final String currentTargetText = newText;
+    // In Covert Mode before trick, oldText has the masked digits, newText has the true typed digits.
     final maxLength = max(oldText.length, newText.length);
 
     return Container(
@@ -574,11 +572,16 @@ class _SlotMachineRevealAnimation extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(maxLength, (i) {
-          String digit = i < currentTargetText.length
-              ? currentTargetText[i]
-              : "";
+          // If a digit doesn't exist yet, pass empty space
+          String oldDigit = i < oldText.length ? oldText[i] : "";
+          String targetDigit = i < newText.length ? newText[i] : "";
 
-          return _SlotMachineReel(digit: digit, index: i, stage: stage);
+          return _SlotMachineReel(
+            oldDigit: oldDigit,
+            targetDigit: targetDigit,
+            index: i,
+            stage: stage,
+          );
         }),
       ),
     );
@@ -586,12 +589,14 @@ class _SlotMachineRevealAnimation extends StatelessWidget {
 }
 
 class _SlotMachineReel extends StatefulWidget {
-  final String digit;
+  final String oldDigit;
+  final String targetDigit;
   final int index;
   final int stage;
 
   const _SlotMachineReel({
-    required this.digit,
+    required this.oldDigit,
+    required this.targetDigit,
     required this.index,
     required this.stage,
   });
@@ -612,7 +617,7 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
   void initState() {
     super.initState();
 
-    _setupReel();
+    _setupReel(startFromOld: false);
 
     _controller = AnimationController(
       vsync: this,
@@ -622,13 +627,22 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
     _scrollAnimation = Tween<double>(begin: 0, end: 0).animate(_controller);
   }
 
-  void _setupReel() {
+  void _setupReel({required bool startFromOld}) {
     _reelDigits.clear();
+    
+    // If starting a trick spin, put the CURRENTLY displayed digit at index 0
+    // so the spin begins seamlessly from what the user is looking at.
+    if (startFromOld) {
+      _reelDigits.add(widget.oldDigit.isEmpty ? " " : widget.oldDigit);
+    }
+
     final rand = Random();
-    for (int i = 0; i < 20; i++) {
+    // 40 random digits for a long chaotic spin
+    for (int i = 0; i < 40; i++) {
       _reelDigits.add(rand.nextInt(10).toString());
     }
-    _reelDigits.add(widget.digit.isEmpty ? " " : widget.digit);
+    // Final target digit at the bottom
+    _reelDigits.add(widget.targetDigit.isEmpty ? " " : widget.targetDigit);
   }
 
   void _triggerEntrySpin() {
@@ -661,12 +675,10 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
   void didUpdateWidget(covariant _SlotMachineReel oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // If the target digit changed (common during reveal tricks or peeking)
-    if (widget.digit != oldWidget.digit) {
-      _setupReel();
+    // If the target digit changed (common during typing or entry)
+    if (widget.targetDigit != oldWidget.targetDigit) {
+      _setupReel(startFromOld: false);
 
-      // We only trigger an immediate spin if we're NOT currently performing a reveal trick (Stages 1 & 2)
-      // Transitions into Stage 2 (Locking) have their own coordinated delayed settlement logic below.
       if (widget.stage == 0) {
         _triggerEntrySpin();
       }
@@ -675,12 +687,18 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
     if (widget.stage == 1 && oldWidget.stage != 1) {
       // PHASE 1: CHAOTIC SPINNING
       _isLocked = false;
-      _controller.duration = const Duration(milliseconds: 400);
+      
+      // Rebuild reel specifically for the trick spin:
+      // Puts the currently displayed digit (oldWidget.oldDigit) at the very top.
+      _setupReel(startFromOld: true);
+
+      _controller.duration = const Duration(milliseconds: 1000); // Fast chaos
       _scrollAnimation = Tween<double>(
-        begin: 0,
-        end: -10 * 40.0, // Scroll down many digits
+        begin: 0.0, // Start perfectly on the digit we were just looking at
+        end: -(_reelDigits.length - 2) * 40.0, // Scroll down almost to the end
       ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
-      _controller.repeat();
+      
+      _controller.forward(from: 0.0);
     } else if (widget.stage == 2 && oldWidget.stage != 2) {
       // PHASE 2: SEQUENTIAL LOCKING
       final delay = widget.index * 200; // Left-to-right mechanical delay

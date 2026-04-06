@@ -273,6 +273,8 @@ class DialPageController extends GetxController
   int _shakeCount = 0;
   static const double _shakeThreshold = 18.0; // Higher force for deliberate shakes
 
+  Timer? _typingTimer;
+
   void _initBackTapListener() {
     _accelerometerSubscription?.cancel();
     _backTapDetector?.stop();
@@ -319,6 +321,8 @@ class DialPageController extends GetxController
   @override
   void onClose() {
     _accelerometerSubscription?.cancel();
+    _typingTimer?.cancel();
+    _backTapDetector?.stop();
     super.onClose();
   }
 
@@ -389,6 +393,16 @@ class DialPageController extends GetxController
 
         return;
       }
+
+      // 🛑 Ignore back-tap during active typing
+      if (_backTapDetector != null) {
+        _backTapDetector!.isTyping = true;
+        _typingTimer?.cancel();
+        _typingTimer = Timer(const Duration(milliseconds: 600), () {
+          _backTapDetector?.isTyping = false;
+        });
+      }
+
       HapticFeedback.lightImpact();
 
       if (actualNumber.isEmpty) {
