@@ -883,9 +883,12 @@ class DialPageController extends GetxController
         fadeStage.value = 0;
       } else if (animationType == AnimationsType.slotMachineAnimation) {
         fadeStage.value = 1;
-        await Future.delayed(const Duration(milliseconds: 1000));
+        await Future.delayed(const Duration(milliseconds: 1000)); // chaos spin
         fadeStage.value = 2;
-        await Future.delayed(Duration(milliseconds: (displayNumber.length * 150) + 200));
+        // Each reel locks after: (index × 200ms delay) + 1500ms elastic animation.
+        // Last reel total = (n-1)×200 + 1500ms. Add 300ms buffer for natural settle.
+        final reelSettleMs = ((displayNumber.length - 1) * 200) + 1500 + 300;
+        await Future.delayed(Duration(milliseconds: reelSettleMs));
         fadeStage.value = 3;
         await _addAndSaveNumber(displayNumber);
         // ✨ Trick done
