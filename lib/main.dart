@@ -12,9 +12,7 @@ import 'app/utils/themes/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   debugPrint("Initializing PN Code with stable engine...");
 
   await Hive.initFlutter();

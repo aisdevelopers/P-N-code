@@ -20,7 +20,7 @@ import '../models/dial_pad_item_model.dart';
 import 'package:volume_key_board/volume_key_board.dart';
 
 class DialPageController extends GetxController
-    with GetSingleTickerProviderStateMixin {
+    with GetSingleTickerProviderStateMixin, WidgetsBindingObserver {
   static DialPageController get instance => Get.find<DialPageController>();
   final RxList<DialEntry> enteredNumbers = <DialEntry>[].obs;
 
@@ -274,6 +274,8 @@ class DialPageController extends GetxController
     _dialPadTargetNumber.value =
         LocalStorage.get<String>(KeyConstants.savedDialPadTargetNumberKey) ?? '';
 
+    WidgetsBinding.instance.addObserver(this);
+
     super.onInit();
   }
 
@@ -335,12 +337,22 @@ class DialPageController extends GetxController
 
   @override
   void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
     _accelerometerSubscription?.cancel();
     _typingTimer?.cancel();
     _backTapDetector?.stop();
     _dialPadIdleTimer?.cancel();
     VolumeKeyBoard.instance.removeListener();
     super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      debugPrint("App Resumed: Re-initializing volume listener");
+      _initBackTapListener();
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   static const MethodChannel dtmfChannel = MethodChannel("dtmf_tone");

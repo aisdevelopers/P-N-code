@@ -15,159 +15,127 @@ import '../controllers/settings_controller.dart';
 
 class SettingsView extends GetView<SettingsController> {
   const SettingsView({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-
-        final allow = await controller.handleBackPress();
-
-        if (allow) {
-          Navigator.of(Get.context!).pop();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios),
-            onPressed: () async {
-              final allow = await controller.handleBackPress();
-
-              if (allow) {
-                Navigator.of(Get.context!).pop();
-              }
-            },
-          ),
-          centerTitle: true,
-          title: Text(
-            'Settings',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          actions: [
-            GestureDetector(
-              onTap: () {
-                Get.toNamed(Routes.DIAL_NUMBER_HISTORY);
-              },
-              child: Icon(Icons.person),
-            ),
-            ThemeModeUpdateWidget(),
-          ],
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: () async {
+            final allow = await controller.handleBackPress();
+            if (allow) {
+              Get.back();
+            }
+          },
         ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
-            child: GetBuilder<SettingsController>(
-              builder: (controller) {
-                return SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Form(
-                        key: controller.settingsFormKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SettingsModeDropdownWidget(),
-                            const SizedBox(height: 20),
-                            // * Text Animation type
-                            const SettingsTrickAnimationTypeWidget(),
-                            const SizedBox(height: 10),
-
-                            Obx(() {
-                              if (controller.selectedMode.title !=
-                                  "Time Mode") {
-                                return const SizedBox();
-                              }
-
-                              return Row(
-                                children: [
-                                  Checkbox(
-                                    value: controller.addOneMinute,
-                                    onChanged: (value) {
-                                      controller.addOneMinute = value ?? false;
-                                    },
-                                  ),
-                                  const Text("Test: Add +1 Minute"),
-                                ],
-                              );
-                            }),
-                            SizedBox(height: 20),
-
-                            Obx(() {
-                              // if (controller.selectedMode.title == "Dial Pad Mode") {
-                              //   return const SizedBox();
-                              // }
-                              return Column(
-                                children: [
-                                  TextFormField(
-                                    maxLength: 15,
-                                    controller: controller.actualNumber,
-                                    onTapOutside: (event) =>
-                                        FocusScope.of(context).unfocus(),
-                                    decoration: InputDecoration(
-                                      counter: SizedBox.shrink(),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(15),
-                                        ),
-                                      ),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(Icons.add_circle_outline),
-                                        onPressed: controller.addNumberToList,
-                                      ),
-                                      labelText: 'Actual Number',
-                                      hintText: 'Enter your actual phone number',
+        centerTitle: true,
+        title: Text(
+          'Settings',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              Get.toNamed(Routes.DIAL_NUMBER_HISTORY);
+            },
+            child: const Icon(Icons.person),
+          ),
+          const ThemeModeUpdateWidget(),
+        ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+          child: GetBuilder<SettingsController>(
+            builder: (controller) {
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Form(
+                      key: controller.settingsFormKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SettingsModeDropdownWidget(),
+                          const SizedBox(height: 20),
+                          const SettingsTrickAnimationTypeWidget(),
+                          const SizedBox(height: 10),
+                          Obx(() {
+                            if (controller.selectedMode.title != "Time Mode") {
+                              return const SizedBox();
+                            }
+                            return Row(
+                              children: [
+                                Checkbox(
+                                  value: controller.addOneMinute,
+                                  onChanged: (value) {
+                                    controller.addOneMinute = value ?? false;
+                                  },
+                                ),
+                                const Text("Test: Add +1 Minute"),
+                              ],
+                            );
+                          }),
+                          const SizedBox(height: 20),
+                          Column(
+                            children: [
+                              TextFormField(
+                                maxLength: 15,
+                                controller: controller.actualNumber,
+                                onTapOutside: (event) =>
+                                    FocusScope.of(context).unfocus(),
+                                decoration: InputDecoration(
+                                  counter: const SizedBox.shrink(),
+                                  border: const OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(15),
                                     ),
-                                    keyboardType: TextInputType.phone,
-                                    validator: (value) {
-                                      if (value == null || value.trim().isEmpty) {
-                                        return 'Enter at least 1 digit';
-                                      }
-
-                                      if (value.length > 15) {
-                                        return 'Maximum 15 digits allowed';
-                                      }
-
-                                      if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-                                        return 'Only digits allowed';
-                                      }
-
-                                      return null;
-                                    },
                                   ),
-                                  const SizedBox(height: 10),
-                                  const SettingsNumberDropdownWidget(),
-                                ],
-                              );
-                            }),
-                            const SizedBox(height: 20),
-                            const TrickTriggerRadioButtonWidget(),
-                            const SizedBox(height: 10),
-
-                            // * Enable double tap or Long Press
-                            const SettingsAccessRadioButtonWidget(),
-                            const SizedBox(height: 10),
-
-                            const SettingsFeedbackTrickRadioButtton(),
-                            const SizedBox(height: 10),
-
-                            // * Animation Transition Duration
-                            const SettingsTrickAnimationDurationTypeWidget(),
-                            const SizedBox(height: 10),
-
-                            // * Save Button
-                            const SettingsSaveButtonWidget(),
-                          ],
-                        ),
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(Icons.add_circle_outline),
+                                    onPressed: controller.addNumberToList,
+                                  ),
+                                  labelText: 'Actual Number',
+                                  hintText: 'Enter your actual phone number',
+                                ),
+                                keyboardType: TextInputType.phone,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Enter at least 1 digit';
+                                  }
+                                  if (value.length > 15) {
+                                    return 'Maximum 15 digits allowed';
+                                  }
+                                  if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                                    return 'Only digits allowed';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              const SettingsNumberDropdownWidget(),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          const TrickTriggerRadioButtonWidget(),
+                          const SizedBox(height: 10),
+                          const SettingsAccessRadioButtonWidget(),
+                          const SizedBox(height: 10),
+                          const SettingsFeedbackTrickRadioButtton(),
+                          const SizedBox(height: 10),
+                          const SettingsTrickAnimationDurationTypeWidget(),
+                          const SizedBox(height: 10),
+                          const SettingsSaveButtonWidget(),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -189,12 +157,8 @@ class ThemeModeUpdateWidget extends GetView<ThemeController> {
         ),
         icon: Icon(
           controller.themeMode == ThemeMode.light
-              ? Icons
-                    .dark_mode // show dark mode icon when light
-              : Icons.light_mode, // show sun when dark
-          // color: controller.themeMode == ThemeMode.light
-          //     ? Colors.black
-          //     : Colors.white,
+              ? Icons.dark_mode
+              : Icons.light_mode,
         ),
       ),
     );
