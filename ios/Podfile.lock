@@ -6,12 +6,15 @@ PODS:
     - Flutter
   - url_launcher_ios (0.0.1):
     - Flutter
+  - volume_key_board (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - icloud_storage (from `.symlinks/plugins/icloud_storage/ios`)
   - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+  - volume_key_board (from `.symlinks/plugins/volume_key_board/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
@@ -22,12 +25,15 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sensors_plus/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
+  volume_key_board:
+    :path: ".symlinks/plugins/volume_key_board/ios"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   icloud_storage: e55639f0c0d7cb2b0ba9c0b3d5968ccca9cd9aa2
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
+  volume_key_board: c239533af2ebd81e8534f921f8bc16f46dbed140
 
 PODFILE CHECKSUM: 5442629a0e43310dea8d09b4a44dc727bc895bae
 

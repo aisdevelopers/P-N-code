@@ -10,7 +10,7 @@ import '../models/animation_type_model.dart';
 
 enum SettingsAction { tripleTap, longPress }
 
-enum TrickTrigger { topToBottom, bottomToTop, backDoubleTap, shake }
+enum TrickTrigger { topToBottom, bottomToTop, backDoubleTap, shake, volumeButton }
 
 enum TrickFeedbackMode { vibrateOnly, toggleOnly }
 
@@ -27,6 +27,7 @@ class SettingsController extends GetxController {
     ModeModel(title: 'Reverse Covert Mode'),
     ModeModel(title: 'Lock Mode'),
     ModeModel(title: 'Force Mode'),
+    // ModeModel(title: 'Dial Pad Mode'),
   ];
 
   final Rx<ModeModel> _selectedMode = Rx<ModeModel>(

@@ -79,6 +79,21 @@ class TrickTriggerRadioButtonWidget extends GetView<SettingsController> {
                   ),
                 ],
               ),
+              Row(
+                children: [
+                  Radio<TrickTrigger>(
+                    value: TrickTrigger.volumeButton,
+                    groupValue: controller.selectedTrickTrigger,
+                    onChanged: (val) {
+                      if (val != null) controller.selectedTrickTrigger = val;
+                    },
+                  ),
+                  Text(
+                    "Volume Button",
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             ],
           ),
         ),

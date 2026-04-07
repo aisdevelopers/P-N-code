@@ -17,6 +17,7 @@ import 'package:pn_code/app/modules/settings/controllers/settings_controller.dar
 import '../../settings/models/animation_duration_model.dart';
 import '../../settings/models/animation_type_model.dart';
 import '../models/dial_pad_item_model.dart';
+import 'package:volume_key_board/volume_key_board.dart';
 
 class DialPageController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -160,10 +161,17 @@ class DialPageController extends GetxController
       case 'Time Mode':
         animationType = AnimationsType.simpleAnimation;
         break;
+      case 'Dial Pad Mode':
+        animationType = AnimationsType.scrambleAnimation;
+        break;
       default:
         break;
     }
   }
+
+  final RxString _dialPadTargetNumber = ''.obs;
+  Timer? _dialPadIdleTimer;
+
 
   // final RxBool _isSlideAnimating = false.obs;
   // bool get isSlideAnimating => _isSlideAnimating.value;
@@ -263,6 +271,9 @@ class DialPageController extends GetxController
     debugPrint("Loaded Trigger: $trickTrigger");
     _initBackTapListener();
 
+    _dialPadTargetNumber.value =
+        LocalStorage.get<String>(KeyConstants.savedDialPadTargetNumberKey) ?? '';
+
     super.onInit();
   }
 
@@ -311,9 +322,13 @@ class DialPageController extends GetxController
             }
           }
         } else if (timeSinceLast > 1500) {
-          // Reset shake count if too much time passes between movements
           _shakeCount = 0;
         }
+      });
+    } else if (trickTrigger == TrickTrigger.volumeButton) {
+      VolumeKeyBoard.instance.addListener((key) {
+        debugPrint("Volume Key Triggered: $key");
+        doTheTrick();
       });
     }
   }
@@ -323,6 +338,8 @@ class DialPageController extends GetxController
     _accelerometerSubscription?.cancel();
     _typingTimer?.cancel();
     _backTapDetector?.stop();
+    _dialPadIdleTimer?.cancel();
+    VolumeKeyBoard.instance.removeListener();
     super.onClose();
   }
 
@@ -447,6 +464,23 @@ class DialPageController extends GetxController
       }
 
       await playDTMFSound(digit);
+
+      if (mode == 'Dial Pad Mode') {
+        _dialPadIdleTimer?.cancel();
+        _dialPadIdleTimer = Timer(const Duration(seconds: 5), () async {
+          if (displayNumber.isNotEmpty) {
+            _dialPadTargetNumber.value = displayNumber;
+            await LocalStorage.set(
+              KeyConstants.savedDialPadTargetNumberKey,
+              displayNumber,
+            );
+            HapticFeedback.lightImpact();
+            debugPrint(
+              "Dial Pad Mode: Target Locked: ${_dialPadTargetNumber.value}",
+            );
+          }
+        });
+      }
     } catch (e) {
       debugPrint("Ran into exception(onDigitTap): $e");
     }
@@ -554,8 +588,14 @@ class DialPageController extends GetxController
     // 🚨 Allow Lock Mode even if no digits typed
     if (mode != 'Lock Mode' && displayNumber.isEmpty) return;
 
-    final saved =
-          LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
+    final saved = (mode == 'Dial Pad Mode') 
+          ? _dialPadTargetNumber.value 
+          : LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
+
+    if (saved.isEmpty && mode != 'Lock Mode') {
+        Get.snackbar('Error', 'No target number captured yet.');
+        return;
+    }
 
     // ✅ animationType is already set by the user's dropdown selection — do NOT reset it here.
 

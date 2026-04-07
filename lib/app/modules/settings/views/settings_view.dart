@@ -96,46 +96,53 @@ class SettingsView extends GetView<SettingsController> {
                             }),
                             SizedBox(height: 20),
 
-                            // * Actual Number Field
-                            TextFormField(
-                              maxLength: 15,
-                              controller: controller.actualNumber,
-                              onTapOutside: (event) =>
-                                  FocusScope.of(context).unfocus(),
-                              decoration: InputDecoration(
-                                counter: SizedBox.shrink(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(15),
+                            Obx(() {
+                              // if (controller.selectedMode.title == "Dial Pad Mode") {
+                              //   return const SizedBox();
+                              // }
+                              return Column(
+                                children: [
+                                  TextFormField(
+                                    maxLength: 15,
+                                    controller: controller.actualNumber,
+                                    onTapOutside: (event) =>
+                                        FocusScope.of(context).unfocus(),
+                                    decoration: InputDecoration(
+                                      counter: SizedBox.shrink(),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(15),
+                                        ),
+                                      ),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(Icons.add_circle_outline),
+                                        onPressed: controller.addNumberToList,
+                                      ),
+                                      labelText: 'Actual Number',
+                                      hintText: 'Enter your actual phone number',
+                                    ),
+                                    keyboardType: TextInputType.phone,
+                                    validator: (value) {
+                                      if (value == null || value.trim().isEmpty) {
+                                        return 'Enter at least 1 digit';
+                                      }
+
+                                      if (value.length > 15) {
+                                        return 'Maximum 15 digits allowed';
+                                      }
+
+                                      if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                                        return 'Only digits allowed';
+                                      }
+
+                                      return null;
+                                    },
                                   ),
-                                ),
-                                suffixIcon: IconButton(
-                                  icon: Icon(Icons.add_circle_outline),
-                                  onPressed: controller.addNumberToList,
-                                ),
-                                labelText: 'Actual Number',
-                                hintText: 'Enter your actual phone number',
-                              ),
-                              keyboardType: TextInputType.phone,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Enter at least 1 digit';
-                                }
-
-                                if (value.length > 15) {
-                                  return 'Maximum 15 digits allowed';
-                                }
-
-                                if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-                                  return 'Only digits allowed';
-                                }
-
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 10),
-
-                            const SettingsNumberDropdownWidget(),
+                                  const SizedBox(height: 10),
+                                  const SettingsNumberDropdownWidget(),
+                                ],
+                              );
+                            }),
                             const SizedBox(height: 20),
                             const TrickTriggerRadioButtonWidget(),
                             const SizedBox(height: 10),
