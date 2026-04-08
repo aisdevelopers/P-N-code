@@ -757,10 +757,8 @@ class DialPageController extends GetxController
     revealAnswer = false;
     shouldFlicker = false;
 
-    // Small delay if animation duration is set, with '+' cue 1s before
-    if (!isFromShortcut) {
-      await waitWithPlusCue();
-    }
+    // Always wait for the custom delay, regardless of trigger source
+    await waitWithPlusCue();
 
     // ===================================================
     // 🟢 REVERSE COVERT MODE
