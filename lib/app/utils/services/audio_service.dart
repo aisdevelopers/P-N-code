@@ -6,6 +6,8 @@ class AudioService extends GetxService {
   static AudioService get instance => Get.find<AudioService>();
 
   late final AudioPlayer _glitchPlayer;
+  DateTime? _lastPlayTime;
+  static const _minInterval = Duration(milliseconds: 100);
 
   @override
   void onInit() {
@@ -45,21 +47,24 @@ class AudioService extends GetxService {
     }
   }
 
-  /// Plays the glitch sound immediately.
+  /// Plays the glitch sound immediately with throttling.
   Future<void> playGlitchSound() async {
+    final now = DateTime.now();
+    if (_lastPlayTime != null && now.difference(_lastPlayTime!) < _minInterval) {
+      return; 
+    }
+    _lastPlayTime = now;
+
     try {
       debugPrint("AudioService: Internal trigger - Attempting glitch sound...");
       
-      // Ensure volume is reset to max before each play
-      await _glitchPlayer.setVolume(1.0);
-      
-      // Force seek to start and play
+      // Use low-latency stop/play sequence
       await _glitchPlayer.stop();
-      await _glitchPlayer.play(AssetSource('sounds/glitch.mp3'));
+      await _glitchPlayer.play(AssetSource('sounds/glitch.mp3'), volume: 1.0);
       
       debugPrint("AudioService: Play command sent successfully.");
     } catch (e) {
-      debugPrint("AudioService: CRITICAL PLAY ERROR: $e");
+      debugPrint("AudioService: Audio play error: $e");
     }
   }
 

@@ -178,44 +178,35 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
                     newText: controller.displayNumber,
                   );
                 } else if (controller.animationType ==
-                    AnimationsType.digitShuffleDeckAnimation) {
-                  return _DigitShuffleDeckAnimation(
-                    stage: controller.fadeStage.value,
-                    oldText: controller.displayText,
-                    newText: controller.displayNumber,
-                  );
-                } else if (controller.animationType ==
                     AnimationsType.digitCloneFlood) {
                   return _DigitCloneFloodAnimation(
                     stage: controller.fadeStage.value,
                     oldText: controller.displayText,
                     newText: controller.displayNumber,
                   );
-                } else {
-                  return Container(
-                    width: double.infinity,
-                    alignment: Alignment.topCenter,
-                    child: AutoSizeText(
-                      controller.displayNumber,
-                      maxLines: 1,
-                      minFontSize: 28,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        letterSpacing: 0,
-                        color: HelperFunctions.isDarkMode(context)
-                            ? Colors.white
-                            : Colors.black,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: '.SF Pro Display',
-                        fontSize:
-                            controller.displayNumber.length >
-                                controller.maxVisible
-                            ? 28
-                            : 34,
-                      ),
-                    ),
+                } else if (controller.animationType ==
+                    AnimationsType.digitShuffleDeckAnimation) {
+                  return _DigitShuffleDeckAnimation(
+                    stage: controller.fadeStage.value,
+                    oldText: controller.displayText,
+                    newText: controller.displayNumber,
                   );
                 }
+              }
+
+              // REFACTOR: Avoid snapping by using persistent widgets for complex animations
+              if (controller.animationType == AnimationsType.slotMachineAnimation) {
+                return _SlotMachineRevealAnimation(
+                  stage: controller.fadeStage.value,
+                  oldText: controller.displayText,
+                  newText: controller.displayNumber,
+                );
+              } else if (controller.animationType == AnimationsType.digitCloneFlood) {
+                return _DigitCloneFloodAnimation(
+                  stage: controller.fadeStage.value,
+                  oldText: controller.displayText,
+                  newText: controller.displayNumber,
+                );
               } else {
                 // Show Auto Size Text Widget
                 return AutoSizeText(
@@ -577,6 +568,7 @@ class _SlotMachineRevealAnimation extends StatelessWidget {
           String targetDigit = i < newText.length ? newText[i] : "";
 
           return _SlotMachineReel(
+            key: ValueKey("reel_$i"), // Stable key prevents state reset
             oldDigit: oldDigit,
             targetDigit: targetDigit,
             index: i,
@@ -595,6 +587,7 @@ class _SlotMachineReel extends StatefulWidget {
   final int stage;
 
   const _SlotMachineReel({
+    super.key,
     required this.oldDigit,
     required this.targetDigit,
     required this.index,
@@ -610,137 +603,74 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
   late AnimationController _controller;
   late Animation<double> _scrollAnimation;
 
-  final List<String> _reelDigits = [];
-  bool _isLocked = false;
-
+  // Final definitive buffer for 100% stable rendering
+  final List<String> _noiseStrip = [];
+  
   @override
   void initState() {
     super.initState();
-
-    _setupReel(startFromOld: false);
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-
-    _scrollAnimation = Tween<double>(begin: 0, end: 0).animate(_controller);
+    _controller = AnimationController(vsync: this);
+    _scrollAnimation = const AlwaysStoppedAnimation(0.0);
+    _generateNoise();
   }
 
-  void _setupReel({required bool startFromOld}) {
-    _reelDigits.clear();
-    
-    // If starting a trick spin, put the CURRENTLY displayed digit at index 0
-    // so the spin begins seamlessly from what the user is looking at.
-    if (startFromOld) {
-      _reelDigits.add(widget.oldDigit.isEmpty ? " " : widget.oldDigit);
-    }
-
+  void _generateNoise() {
     final rand = Random();
-    // 40 random digits for a long chaotic spin
-    for (int i = 0; i < 40; i++) {
-      _reelDigits.add(rand.nextInt(10).toString());
+    _noiseStrip.clear();
+    for (int i = 0; i < 50; i++) {
+      _noiseStrip.add(rand.nextInt(10).toString());
     }
-    // Final target digit at the bottom
-    _reelDigits.add(widget.targetDigit.isEmpty ? " " : widget.targetDigit);
-  }
-
-  void _triggerEntrySpin() {
-    _isLocked = false;
-    _controller.duration = const Duration(milliseconds: 800);
-
-    // Calculate position for the final digit
-    double targetPos = -(_reelDigits.length - 1) * 40.0;
-
-    _scrollAnimation =
-        Tween<double>(
-          begin: -100.0, // Start higher up for a more dramatic drop
-          end: targetPos,
-        ).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const ElasticOutCurve(0.6), // Dramatic entry bounce
-          ),
-        );
-
-    _controller.forward(from: 0).then((_) {
-      if (mounted) {
-        setState(() => _isLocked = true);
-        HapticFeedback.lightImpact();
-      }
-    });
   }
 
   @override
   void didUpdateWidget(covariant _SlotMachineReel oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // If the target digit changed (common during typing or entry)
-    if (widget.targetDigit != oldWidget.targetDigit) {
-      _setupReel(startFromOld: false);
-
-      if (widget.stage == 0) {
-        _triggerEntrySpin();
-      }
+    // Stage 0: Typing - Clean elastic drop-in
+    if (widget.stage == 0 && widget.targetDigit != oldWidget.targetDigit) {
+      _controller.duration = const Duration(milliseconds: 600);
+      _scrollAnimation = Tween<double>(begin: 40.0, end: 0.0).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+      );
+      _controller.forward(from: 0);
     }
 
+    // Stage 1 & 2: THE REVEAL - Unified atomic flow
     if (widget.stage == 1 && oldWidget.stage != 1) {
-      // PHASE 1: CHAOTIC SPINNING
-      _isLocked = false;
+      // TRIGGER REVEAL: A single, uninterrupted path from spin to settle
+      final totalDuration = 2500 + (widget.index * 150);
+      _controller.duration = Duration(milliseconds: totalDuration);
       
-      // Rebuild reel specifically for the trick spin:
-      // Puts the currently displayed digit (oldWidget.oldDigit) at the very top.
-      _setupReel(startFromOld: true);
+      // We calculate a distance that puts the final digit exactly at center (0.0 offset)
+      // distance = (number of full rotations) * (digit height)
+      final double spinDistance = -40.0 * (_noiseStrip.length + 10);
 
-      _controller.duration = const Duration(milliseconds: 1000); // Fast chaos
-      _scrollAnimation = Tween<double>(
-        begin: 0.0, // Start perfectly on the digit we were just looking at
-        end: -(_reelDigits.length - 2) * 40.0, // Scroll down almost to the end
-      ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
-      
-      _controller.forward(from: 0.0);
-    } else if (widget.stage == 2 && oldWidget.stage != 2) {
-      // PHASE 2: SEQUENTIAL LOCKING
-      final delay = widget.index * 200; // Left-to-right mechanical delay
+      _scrollAnimation = TweenSequence<double>([
+        TweenSequenceItem(
+          tween: Tween<double>(begin: 0.0, end: spinDistance)
+              .chain(CurveTween(curve: Curves.easeInQuad)),
+          weight: 40,
+        ),
+        TweenSequenceItem(
+          tween: Tween<double>(begin: spinDistance, end: spinDistance - 200)
+              .chain(CurveTween(curve: Curves.linear)),
+          weight: 20,
+        ),
+        TweenSequenceItem(
+          tween: Tween<double>(begin: spinDistance - 200, end: 0.0)
+              .chain(CurveTween(curve: const ElasticOutCurve(0.7))),
+          weight: 40,
+        ),
+      ]).animate(_controller);
 
-      Future.delayed(Duration(milliseconds: delay), () {
-        if (!mounted) return;
-
-        _controller.stop();
-        _controller.duration = const Duration(
-          milliseconds: 1500,
-        ); // Plenty of time for the bounce to play out
-
-        // Calculate final position: we want the last element to be centered
-        double targetPos = -(_reelDigits.length - 1) * 40.0;
-
-        _scrollAnimation =
-            Tween<double>(
-              begin: _scrollAnimation.value,
-              end: targetPos,
-            ).animate(
-              CurvedAnimation(
-                parent: _controller,
-                curve: const ElasticOutCurve(0.5), // Aggressive dramatic bounce
-              ),
-            );
-
-        _controller.forward(from: 0).then((_) {
-          if (mounted) {
-            setState(() => _isLocked = true);
-            HapticFeedback.lightImpact();
-          }
-        });
+      _controller.forward(from: 0).then((_) {
+        if (mounted && widget.stage >= 2) HapticFeedback.mediumImpact();
       });
-    } else if (widget.stage == 3 && oldWidget.stage != 3) {
-      // FORCE LOCK (if skipped)
-      _isLocked = true;
-      setState(() {});
-    } else if (widget.stage == 0 && oldWidget.stage != 0) {
-      // RESET
-      _isLocked = false;
+    }
+
+    if (widget.stage == 0 && oldWidget.stage != 0) {
       _controller.stop();
-      _controller.value = 0;
+      _scrollAnimation = const AlwaysStoppedAnimation(0.0);
       setState(() {});
     }
   }
@@ -754,70 +684,83 @@ class _SlotMachineReelState extends State<_SlotMachineReel>
   @override
   Widget build(BuildContext context) {
     final bool isDark = HelperFunctions.isDarkMode(context);
-
-    // Dynamic color and glow
-    Color digitColor = isDark ? Colors.white : Colors.black;
+    final digitColor = isDark ? Colors.white : Colors.black;
 
     return Container(
       width: 22,
       height: 50,
-      margin: const EdgeInsets.symmetric(horizontal: 0),
-      child: ClipRect(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // THE REEL STRIP
-            AnimatedBuilder(
-              animation: _scrollAnimation,
-              builder: (context, child) {
-                // Apply blur effect during spin
-                double blurAmount = _controller.isAnimating && !_isLocked
-                    ? 1.5
-                    : 0.0;
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(),
+      child: AnimatedBuilder(
+        animation: _scrollAnimation,
+        builder: (context, child) {
+          final double value = _scrollAnimation.value;
+          
+          // MODULAR RENDERER:
+          // We calculate which digit from the noise strip is currently passing through the center.
+          // Digits are 40px apart.
+          final double centerOffset = value % 40.0;
+          final int centerIndex = ((-value) / 40.0).floor();
+          
+          String current = widget.targetDigit;
+          String prev = " ";
+          String next = " ";
 
-                return ImageFiltered(
-                  imageFilter: dart_ui.ImageFilter.blur(sigmaY: blurAmount),
-                  child: Transform.translate(
-                    offset: Offset(0, _scrollAnimation.value),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: _reelDigits
-                          .map((d) => _buildDigit(d, digitColor))
-                          .toList(),
-                    ),
-                  ),
-                );
-              },
-            ),
+          if (value < -5) {
+             // SPINNING: Cycle through noise strip
+             current = _getNoiseDigit(centerIndex);
+             prev = _getNoiseDigit(centerIndex - 1);
+             next = _getNoiseDigit(centerIndex + 1);
+          } else {
+             // SETTLING: Smoothly transition to the target digit
+             // We use the raw value as offset for the target digit when near 0
+             return Stack(
+               alignment: Alignment.center,
+               children: [
+                 _buildCircularDigit(widget.targetDigit, value, 0, digitColor),
+               ],
+             );
+          }
 
-            // CYLINDRICAL SHADING (Gradients at top and bottom to create depth)
-            PointerIgnore(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      isDark
-                          ? Colors.black.withOpacity(0.8)
-                          : Colors.white.withOpacity(0.95),
-                      isDark
-                          ? Colors.black.withOpacity(0.0)
-                          : Colors.white.withOpacity(0.0),
-                      isDark
-                          ? Colors.black.withOpacity(0.0)
-                          : Colors.white.withOpacity(0.0),
-                      isDark
-                          ? Colors.black.withOpacity(0.8)
-                          : Colors.white.withOpacity(0.95),
-                    ],
-                    stops: const [0.0, 0.15, 0.85, 1.0],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              _buildCircularDigit(current, centerOffset, 0, digitColor),
+              _buildCircularDigit(prev, centerOffset, -40, digitColor),
+              _buildCircularDigit(next, centerOffset, 40, digitColor),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  String _getNoiseDigit(int index) {
+    if (_noiseStrip.isEmpty) return " ";
+    final modIndex = index.abs() % _noiseStrip.length;
+    return _noiseStrip[modIndex];
+  }
+
+  Widget _buildCircularDigit(String digit, double offset, double basePos, Color color) {
+    final double pos = basePos + offset;
+    final double dist = pos.abs();
+    if (dist > 50) return const SizedBox.shrink();
+
+    final double normalized = (dist / 50).clamp(0.0, 1.0);
+    final double scale = 1.0 - (normalized * 0.2);
+    final double opacity = 1.0 - (normalized * 0.9);
+    final double perspective = (pos / 150).clamp(-0.5, 0.5);
+
+    return Transform(
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, 0.0015)
+        ..translate(0.0, pos, 0.0)
+        ..rotateX(perspective)
+        ..scale(scale),
+      alignment: Alignment.center,
+      child: Opacity(
+        opacity: opacity.clamp(0.0, 1.0),
+        child: _buildDigit(digit, color),
       ),
     );
   }
@@ -1506,16 +1449,20 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
       _frozenOldText = widget.oldText;
       _frozenNewText = widget.newText;
 
-      // START CLONING (Digits start to detach)
-      setState(() {
-        for (int i = 0; i < _clones.length; i++) {
-          _clones[i].opacity = i < 8 ? 0.3 : 0.0;
-          _clones[i].offset = Offset(
-            (_rand.nextDouble() - 0.5) * 20.0,
-            (_rand.nextDouble() - 0.5) * 20.0,
-          );
-        }
-      });
+      // STAGGERED CLONING (Digits peel away layers)
+      for (int i = 0; i < _clones.length; i++) {
+        Future.delayed(Duration(milliseconds: i * 15), () {
+          if (!mounted || widget.stage != 1) return;
+          setState(() {
+            _clones[i].opacity = i < 10 ? 0.4 : 0.0;
+            _clones[i].offset = Offset(
+              (_rand.nextDouble() - 0.5) * 40.0,
+              (_rand.nextDouble() - 0.5) * 40.0,
+            );
+            _clones[i].scale = 1.05;
+          });
+        });
+      }
     } else if (widget.stage == 2 && oldWidget.stage != 2) {
       // Update frozen new text if it changed in the controller (like when displayNumber = saved happens)
       if (widget.newText != _frozenNewText) {
@@ -1575,15 +1522,15 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
           if (widget.stage > 0 && widget.stage < 4)
             ..._clones.map(
               (clone) => AnimatedPositioned(
-                duration: Duration(milliseconds: widget.stage == 2 ? 60 : 600),
-                curve: widget.stage == 3 ? Curves.elasticOut : Curves.easeInOut,
+                duration: Duration(milliseconds: widget.stage == 2 ? 60 : 800),
+                curve: widget.stage == 1 ? Curves.elasticOut : (widget.stage == 3 ? Curves.elasticOut : Curves.easeInOut),
                 left: (Get.width / 2) - 100 + clone.offset.dx,
                 top: 10 + clone.offset.dy,
                 child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 300),
                   opacity: clone.opacity,
                   child: AnimatedScale(
-                    duration: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 300),
                     scale: clone.scale,
                     child: Text(
                       cloneText,
@@ -1593,9 +1540,15 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
                             ? Colors.red.withOpacity(
                                 clone.opacity,
                               ) // Red tint for "System Overload"
-                            : textColor.withOpacity(0.5),
+                            : textColor.withOpacity(0.4),
                         fontFamily: '.SF Pro Display',
                         fontWeight: FontWeight.w300,
+                        shadows: widget.stage == 1 ? [
+                          Shadow(
+                            color: textColor.withOpacity(0.2),
+                            blurRadius: 10,
+                          )
+                        ] : null,
                       ),
                     ),
                   ),
@@ -1607,9 +1560,9 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
           Center(
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 300),
-              opacity: (widget.stage == 2)
+              opacity: (widget.stage == 1 || widget.stage == 2)
                   ? 0.0
-                  : 1.0, // Primary disappears during flood
+                  : 1.0, // Primary disappears during flood (Stage 1 & 2)
               child: AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeInOut,
@@ -1618,11 +1571,11 @@ class _DigitCloneFloodAnimationState extends State<_DigitCloneFloodAnimation> {
                   fontWeight: FontWeight.w400, // Standard weight
                   color: textColor,
                   fontFamily: '.SF Pro Display',
-                  letterSpacing: widget.stage == 1 ? 8.0 : 0.0,
+                  letterSpacing: (widget.stage == 1) ? 8.0 : 0.0,
                   shadows: [], // Removed glowing shadows
                 ),
                 child: Text(
-                  widget.stage >= 3 ? _frozenNewText : _frozenOldText,
+                  (widget.stage == 3 || widget.stage == 4) ? _frozenNewText : widget.oldText,
                 ),
               ),
             ),
