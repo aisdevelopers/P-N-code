@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../../../utils/services/audio_service.dart';
 
 class DarkGlitchOverlay extends StatefulWidget {
   final Widget child;
@@ -42,6 +43,9 @@ class _DarkGlitchOverlayState extends State<DarkGlitchOverlay> {
   // MAIN GLITCH TIMELINE
   // ==========================================================
   Future<void> _startBurst() async {
+    // 🔊 Play Glitch Sound
+    AudioService.instance.playGlitchSound();
+
     // 1️⃣ PURE BLACK
     setState(() {
       _isBlack = true;

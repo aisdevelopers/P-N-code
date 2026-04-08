@@ -9,6 +9,7 @@ import 'app/modules/settings/models/animation_type_model.dart';
 import 'app/routes/app_pages.dart';
 import 'app/utils/services/local_storage.dart';
 import 'app/utils/themes/app_theme.dart';
+import 'app/utils/services/audio_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,7 @@ void main() async {
 
   await LocalStorage.init();
 
+  Get.put(AudioService());
   Get.put(ThemeController());
 
   runApp(const MainApp());

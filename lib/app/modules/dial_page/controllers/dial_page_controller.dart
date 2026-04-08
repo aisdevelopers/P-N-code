@@ -12,12 +12,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../../../utils/constants/key_constants.dart';
 import '../../../utils/services/local_storage.dart';
-import '../../../utils/services/back_tap_detector.dart';
 import 'package:pn_code/app/modules/settings/controllers/settings_controller.dart';
 import '../../settings/models/animation_duration_model.dart';
 import '../../settings/models/animation_type_model.dart';
 import '../models/dial_pad_item_model.dart';
 import 'package:volume_key_board/volume_key_board.dart';
+import '../../../utils/services/audio_service.dart';
 
 class DialPageController extends GetxController
     with GetSingleTickerProviderStateMixin, WidgetsBindingObserver {
@@ -274,13 +274,27 @@ class DialPageController extends GetxController
     _dialPadTargetNumber.value =
         LocalStorage.get<String>(KeyConstants.savedDialPadTargetNumberKey) ?? '';
 
+    // ===============================
+    // 🪄 Magic Channel (App Intent)
+    // ===============================
+    const magicChannel = MethodChannel("back_tap_magic");
+    magicChannel.setMethodCallHandler((call) async {
+      if (call.method == "triggerMagic") {
+        if (trickTrigger == TrickTrigger.backDoubleTap) {
+          debugPrint("Back Tap: iOS Intent triggered Magic");
+          doTheTrick(isFromShortcut: true); // 🔥 Instant trigger, no wait
+        } else {
+          debugPrint("Back Tap: Intent ignored (Trigger is set to $trickTrigger)");
+        }
+      }
+    });
+
     WidgetsBinding.instance.addObserver(this);
 
     super.onInit();
   }
 
   StreamSubscription? _accelerometerSubscription;
-  BackTapDetector? _backTapDetector;
 
   DateTime? _lastTapTime;
   int _shakeCount = 0;
@@ -290,16 +304,10 @@ class DialPageController extends GetxController
 
   void _initBackTapListener() {
     _accelerometerSubscription?.cancel();
-    _backTapDetector?.stop();
 
     if (trickTrigger == TrickTrigger.backDoubleTap) {
-      if (_backTapDetector == null) {
-        _backTapDetector = BackTapDetector(onDoubleTap: () {
-          debugPrint("Back Tap: DOUBLE TAP - DOING TRICK");
-          doTheTrick();
-        });
-      }
-      _backTapDetector?.start();
+       // Handled entirely by didChangeAppLifecycleState "Open App" burst now.
+       debugPrint("Back Tap Listener initialized (Lifecycle Mode)");
     } else if (trickTrigger == TrickTrigger.shake) {
       _accelerometerSubscription = userAccelerometerEventStream().listen((event) {
         final double magnitude = event.x.abs() + event.y.abs() + event.z.abs();
@@ -340,17 +348,35 @@ class DialPageController extends GetxController
     WidgetsBinding.instance.removeObserver(this);
     _accelerometerSubscription?.cancel();
     _typingTimer?.cancel();
-    _backTapDetector?.stop();
     _dialPadIdleTimer?.cancel();
     VolumeKeyBoard.instance.removeListener();
     super.onClose();
   }
 
+  DateTime? _lastInactiveTime;
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.inactive) {
+      _lastInactiveTime = DateTime.now();
+    } else if (state == AppLifecycleState.resumed) {
       debugPrint("App Resumed: Re-initializing volume listener");
       _initBackTapListener();
+
+      // Detect iOS Shortcut "Open App" burst (Inactive -> Resumed rapidly)
+      if (trickTrigger == TrickTrigger.backDoubleTap && _lastInactiveTime != null) {
+        final diff = DateTime.now().difference(_lastInactiveTime!).inMilliseconds;
+        debugPrint("Lifecycle diff: $diff ms");
+        if (diff < 1500) {
+          // Ensure we aren't typing, just like the old logic
+          if (_typingTimer?.isActive ?? false) {
+             debugPrint("Back Tap ignored: user is typing");
+          } else {
+             debugPrint("Back Tap: Apple Shortcut 'Open App' burst detected!");
+             doTheTrick(isFromShortcut: true);
+          }
+        }
+      }
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -423,14 +449,11 @@ class DialPageController extends GetxController
         return;
       }
 
-      // 🛑 Ignore back-tap during active typing
-      if (_backTapDetector != null) {
-        _backTapDetector!.isTyping = true;
-        _typingTimer?.cancel();
-        _typingTimer = Timer(const Duration(milliseconds: 600), () {
-          _backTapDetector?.isTyping = false;
-        });
-      }
+      // 🛑 Reset typing timer so lifecycle check knows user is active
+      _typingTimer?.cancel();
+      _typingTimer = Timer(const Duration(milliseconds: 600), () {
+          // Timer naturally expires, indicating user stopped typing
+      });
 
       HapticFeedback.lightImpact();
 
@@ -595,7 +618,7 @@ class DialPageController extends GetxController
     }
   }
 
-  void doTheTrick() async {
+  void doTheTrick({bool isFromShortcut = false}) async {
     if (isHoldingHash) return;
     // 🚨 Allow Lock Mode even if no digits typed
     if (mode != 'Lock Mode' && displayNumber.isEmpty) return;
@@ -664,9 +687,10 @@ class DialPageController extends GetxController
             revealAnswer = true;
             hasRevealed = true;
 
-            await _addAndSaveNumber(displayNumber);
+            await _addAndSaveNumber(displayNumber, isFromShortcut: isFromShortcut);
 
             shouldGlitch = true;
+            AudioService.instance.playGlitchSound();
 
             await Future.delayed(const Duration(milliseconds: 3000));
 
@@ -734,7 +758,9 @@ class DialPageController extends GetxController
     shouldFlicker = false;
 
     // Small delay if animation duration is set, with '+' cue 1s before
-    await waitWithPlusCue();
+    if (!isFromShortcut) {
+      await waitWithPlusCue();
+    }
 
     // ===================================================
     // 🟢 REVERSE COVERT MODE
@@ -760,6 +786,7 @@ class DialPageController extends GetxController
           await _addAndSaveNumber(displayNumber);
 
           shouldGlitch = true;
+          AudioService.instance.playGlitchSound();
 
           await Future.delayed(const Duration(milliseconds: 2500));
 
@@ -778,7 +805,7 @@ class DialPageController extends GetxController
 
         fadeStage.value = 3; // final merged
 
-        await _addAndSaveNumber(displayNumber);
+        await _addAndSaveNumber(displayNumber, isFromShortcut: isFromShortcut);
       } else if (animationType == AnimationsType.fadeAnimation) {
         fadeStage.value = 1; // digits go up
 
@@ -803,7 +830,7 @@ class DialPageController extends GetxController
 
         fadeStage.value = 2; // reveal real digits
 
-        await _addAndSaveNumber(displayNumber);
+        await _addAndSaveNumber(displayNumber, isFromShortcut: isFromShortcut);
       } else if (animationType == AnimationsType.slideAnimation) {
         fadeStage.value = 1;
 
@@ -817,7 +844,7 @@ class DialPageController extends GetxController
 
         fadeStage.value = 3;
 
-        await _addAndSaveNumber(displayNumber);
+        await _addAndSaveNumber(displayNumber, isFromShortcut: isFromShortcut);
       } else if (animationType == AnimationsType.slotMachineAnimation) {
         fadeStage.value = 1;
 
@@ -828,7 +855,7 @@ class DialPageController extends GetxController
         await Future.delayed(Duration(milliseconds: (saved.length * 150) + 200));
         fadeStage.value = 3;
 
-        await _addAndSaveNumber(displayNumber);
+        await _addAndSaveNumber(displayNumber, isFromShortcut: isFromShortcut);
       } else if (animationType == AnimationsType.dataStreamAnimation) {
         // FRAME 2: Trigger (Interference)
         fadeStage.value = 1;
@@ -907,6 +934,7 @@ class DialPageController extends GetxController
           await _addAndSaveNumber(displayNumber);
 
           shouldGlitch = true;
+          AudioService.instance.playGlitchSound();
           await Future.delayed(const Duration(milliseconds: 2500));
           shouldGlitch = false;
 
@@ -1044,17 +1072,6 @@ class DialPageController extends GetxController
     displayNumber = _previousInput;
   }
 
-  Future<void> _saveNumbersToICloud() async {
-    final path = await ICloudService.getICloudPath();
-    if (path == null) return;
-
-    final file = File("$path/dial_numbers.json");
-
-    final jsonList = enteredNumbers.map((e) => e.toJson()).toList();
-
-    await file.writeAsString(jsonEncode(jsonList));
-  }
-
   Future<void> _loadNumbersFromICloud() async {
     final path = await ICloudService.getICloudPath();
     if (path == null) return;
@@ -1085,15 +1102,11 @@ class DialPageController extends GetxController
     );
   }
 
-  Future<void> _addAndSaveNumber(String number) async {
+  Future<void> _addAndSaveNumber(String number, {bool isFromShortcut = false}) async {
     if (number.isEmpty) return;
-
-    enteredNumbers.insert(
-      0,
-      DialEntry(number: number, dateTime: DateTime.now()),
-    );
-
-    await _saveNumbersToICloud();
+    enteredNumbers.insert(0, DialEntry(number: number, dateTime: DateTime.now()));
+    enteredNumbers.assignAll(enteredNumbers.take(20).toList());
+    await LocalStorage.set(KeyConstants.savedPhoneNumbersListKey, enteredNumbers);
   }
 
   Future<void> callCurrentNumber() async {

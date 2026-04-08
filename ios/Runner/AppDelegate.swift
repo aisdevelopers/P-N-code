@@ -1,10 +1,14 @@
 import UIKit
 import Flutter
 import AudioToolbox
+import AppIntents
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
     
+  // 🔗 Static reference for AppIntent access
+  static var magicChannel: FlutterMethodChannel?
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -34,6 +38,14 @@ import AudioToolbox
         }
     }
 
+    // ===============================
+    // 🪄 Magic Channel (App Intents)
+    // ===============================
+    AppDelegate.magicChannel = FlutterMethodChannel(
+        name: "back_tap_magic",
+        binaryMessenger: controller.binaryMessenger
+    )
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
@@ -57,4 +69,33 @@ import AudioToolbox
     default: return 1104
     }
   }
+}
+
+// ===================================================
+// 📲 App Intent for Shortcuts (iOS 16+)
+// ===================================================
+@available(iOS 16.0, *)
+struct PNCodeMagicIntent: AppIntent {
+    static var title: LocalizedStringResource = "Trigger Magic"
+    static var description = IntentDescription("Triggers the secret dialer trick instantly.")
+
+    func perform() async throws -> some IntentResult {
+        // 🔥 Dispatch to Flutter
+        DispatchQueue.main.async {
+            AppDelegate.magicChannel?.invokeMethod("triggerMagic", arguments: nil)
+        }
+        return .result()
+    }
+}
+
+@available(iOS 16.0, *)
+struct PNCodeShortcuts: AppShortcutsProvider {
+    static var appShortcuts: [AppShortcut] {
+        AppShortcut(
+            intent: PNCodeMagicIntent(),
+            phrases: ["Trigger Magic in ${applicationName}"],
+            shortTitle: "Trigger Magic",
+            systemImageName: "wand.and.stars"
+        )
+    }
 }

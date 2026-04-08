@@ -1,4 +1,7 @@
 PODS:
+  - audioplayers_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - Flutter (1.0.0)
   - icloud_storage (0.0.1):
     - Flutter
@@ -10,6 +13,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/darwin`)
   - Flutter (from `Flutter`)
   - icloud_storage (from `.symlinks/plugins/icloud_storage/ios`)
   - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
@@ -17,6 +21,8 @@ DEPENDENCIES:
   - volume_key_board (from `.symlinks/plugins/volume_key_board/ios`)
 
 EXTERNAL SOURCES:
+  audioplayers_darwin:
+    :path: ".symlinks/plugins/audioplayers_darwin/darwin"
   Flutter:
     :path: Flutter
   icloud_storage:
@@ -29,6 +35,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/volume_key_board/ios"
 
 SPEC CHECKSUMS:
+  audioplayers_darwin: 835ced6edd4c9fc8ebb0a7cc9e294a91d99917d5
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   icloud_storage: e55639f0c0d7cb2b0ba9c0b3d5968ccca9cd9aa2
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
