@@ -14,7 +14,8 @@ class KeyConstants {
       'saved_animation_duration';
   static const String savedModeKey = "saved_mode_key";
   static const String savedTrickFeedbackModeKey = 'saved_trick_feedback_mode';
-  static const String savedPhoneNumbersListKey = "saved_phone_numbers_list";
+  static const String savedTargetNumbersPoolKey = "saved_target_numbers_pool";
+  static const String savedCallHistoryKey = "saved_call_history";
   static const String addOneMinuteKey = "add_one_minute_key";
   static const String savedTrickTriggerKey = 'saved_trick_trigger';
   static const String savedDialPadTargetNumberKey = 'saved_dialpad_target_number';

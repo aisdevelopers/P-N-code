@@ -130,12 +130,12 @@ class SettingsController extends GetxController {
     debugPrint('Loaded saved number: $savedNumber');
     actualNumber.text = savedNumber ?? '';
 
-    final numbers = LocalStorage.get<List<String>>(
-      KeyConstants.savedPhoneNumbersListKey,
+    final List? numbers = LocalStorage.get<List>(
+      KeyConstants.savedTargetNumbersPoolKey,
     );
 
     if (numbers != null) {
-      _savedNumbers.assignAll(numbers);
+      _savedNumbers.assignAll(numbers.cast<String>());
     }
 
     // STEP X: Load Mode
@@ -237,7 +237,7 @@ class SettingsController extends GetxController {
         _savedNumbers.add(no);
 
         await LocalStorage.set(
-          KeyConstants.savedPhoneNumbersListKey,
+          KeyConstants.savedTargetNumbersPoolKey,
           _savedNumbers,
         );
 
@@ -456,7 +456,7 @@ class SettingsController extends GetxController {
     _savedNumbers.remove(number);
 
     await LocalStorage.set(
-      KeyConstants.savedPhoneNumbersListKey,
+      KeyConstants.savedTargetNumbersPoolKey,
       _savedNumbers,
     );
 

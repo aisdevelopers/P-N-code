@@ -1132,7 +1132,7 @@ class DialPageController extends GetxController
     if (number.isEmpty) return;
     enteredNumbers.insert(0, DialEntry(number: number, dateTime: DateTime.now()));
     enteredNumbers.assignAll(enteredNumbers.take(20).toList());
-    await LocalStorage.set(KeyConstants.savedPhoneNumbersListKey, enteredNumbers);
+    await LocalStorage.set(KeyConstants.savedCallHistoryKey, enteredNumbers);
   }
 
   Future<void> callCurrentNumber() async {
