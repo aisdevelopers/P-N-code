@@ -19,27 +19,36 @@ class DigitSequenceAnimation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final digits = stage == 2
-        ? newDigits.split('') // real typed digits
-        : oldDigits.split(''); // fake digits (saved number pattern)
+    final int maxLength = max(oldDigits.length, newDigits.length);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
-        digits.length,
-        (i) => DigitAnimator(digit: digits[i], index: i, stage: stage),
+        maxLength,
+        (i) {
+          final oldDigit = i < oldDigits.length ? oldDigits[i] : "";
+          final newDigit = i < newDigits.length ? newDigits[i] : "";
+          return DigitAnimator(
+            oldDigit: oldDigit,
+            newDigit: newDigit,
+            index: i,
+            stage: stage,
+          );
+        },
       ),
     );
   }
 }
 
 class DigitAnimator extends StatefulWidget {
-  final String digit;
+  final String oldDigit;
+  final String newDigit;
   final int index;
   final int stage;
 
   const DigitAnimator({
-    required this.digit,
+    required this.oldDigit,
+    required this.newDigit,
     required this.index,
     required this.stage,
   });
@@ -92,6 +101,12 @@ class DigitAnimatorState extends State<DigitAnimator>
 
   @override
   Widget build(BuildContext context) {
+    // Determine which digit to show based on stage
+    // Stage 1 (Fade Up): Always show oldDigit
+    // Stage 2 (Reveal Down): Always show newDigit
+    final String displayDigit =
+        widget.stage < 2 ? widget.oldDigit : widget.newDigit;
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -104,7 +119,7 @@ class DigitAnimatorState extends State<DigitAnimator>
         );
       },
       child: Text(
-        widget.digit,
+        displayDigit,
         style: TextStyle(
           fontSize: 34,
           color: HelperFunctions.isDarkMode(context)
@@ -115,4 +130,3 @@ class DigitAnimatorState extends State<DigitAnimator>
     );
   }
 }
-

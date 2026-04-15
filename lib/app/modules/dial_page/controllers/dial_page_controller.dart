@@ -743,19 +743,11 @@ class DialPageController extends GetxController
           await Future.delayed(const Duration(milliseconds: 500));
 
           fadeStage.value = 3;
-        } else if (animationType == AnimationsType.fadeAnimation) {
-          fadeStage.value = 0;
-
-          await Future.delayed(const Duration(milliseconds: 20));
-
           fadeStage.value = 1;
 
           await Future.delayed(const Duration(milliseconds: 800));
 
           displayNumber = saved;
-
-          await Future.delayed(const Duration(milliseconds: 800));
-
           fadeStage.value = 2;
 
           await _addAndSaveNumber(displayNumber);
