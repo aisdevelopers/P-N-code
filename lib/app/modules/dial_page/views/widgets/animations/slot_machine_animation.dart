@@ -28,14 +28,16 @@ class SlotMachineRevealAnimation extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(maxLength, (i) {
-          // If a digit doesn't exist yet, pass empty space
-          String oldDigit = i < oldText.length ? oldText[i] : "";
-          String targetDigit = i < newText.length ? newText[i] : "";
+          // In Covert Mode, oldText has the masked digits, newText has the true typed digits.
+          String maskDigit = i < oldText.length ? oldText[i] : "";
+          String realDigit = i < newText.length ? newText[i] : "";
+
+          // Before trigger, show the mask. After trigger, spin to the real digit.
+          String currentTarget = (stage < 1) ? maskDigit : realDigit;
 
           return SlotMachineReel(
             key: ValueKey("reel_$i"), // Stable key prevents state reset
-            oldDigit: oldDigit,
-            targetDigit: targetDigit,
+            targetDigit: currentTarget,
             index: i,
             stage: stage,
           );
@@ -46,14 +48,12 @@ class SlotMachineRevealAnimation extends StatelessWidget {
 }
 
 class SlotMachineReel extends StatefulWidget {
-  final String oldDigit;
   final String targetDigit;
   final int index;
   final int stage;
 
   const SlotMachineReel({
     super.key,
-    required this.oldDigit,
     required this.targetDigit,
     required this.index,
     required this.stage,
