@@ -237,11 +237,15 @@ class DialPageController extends GetxController
         AnimationDuration.instant;
 
     animatedGlitchController = AnimatedGlitchController(
-      level: 2.5,
+      level: 4.5, // Increased intensity
       autoStart: false,
-      distortionShift: DistortionShift(),
-      frequency: Duration(milliseconds: 50),
-      colorChannelShift: ColorChannelShift(spread: 100),
+      distortionShift: DistortionShift(
+        count: 5, // More distortion bands
+      ),
+      frequency: const Duration(milliseconds: 60),
+      colorChannelShift: const ColorChannelShift(
+        spread: 12, // Tighter, more modern look
+      ),
     );
 
     final savedFeedback = LocalStorage.get<String>(
@@ -619,6 +623,7 @@ class DialPageController extends GetxController
   }
 
   void doTheTrick({bool isFromShortcut = false}) async {
+    debugPrint("DEBUG: [doTheTrick] REACHED. mode: $mode, isLocked: $isLocked, animationType: $animationType");
     if (isHoldingHash) return;
     // 🚨 Allow Lock Mode even if no digits typed
     if (mode != 'Lock Mode' && displayNumber.isEmpty) return;
@@ -689,12 +694,25 @@ class DialPageController extends GetxController
 
             await _addAndSaveNumber(displayNumber, isFromShortcut: isFromShortcut);
 
+            debugPrint("DEBUG: [doTheTrick] Setting shouldGlitch = true");
             shouldGlitch = true;
+            
+            // 🕒 Wait one frame for widget to bind controller
+            await Future.delayed(const Duration(milliseconds: 50));
+            
+            debugPrint("DEBUG: [doTheTrick] Calling animatedGlitchController.start()");
+            animatedGlitchController.start();
             AudioService.instance.playGlitchSound();
 
             await Future.delayed(const Duration(milliseconds: 3000));
 
+            debugPrint("DEBUG: [doTheTrick] Setting shouldGlitch = false");
             shouldGlitch = false;
+            animatedGlitchController.stop();
+            // 🔄 Ensure full state reset
+            hasRevealed = true;
+            revealAnswer = false;
+            fadeStage.value = 0;
           }
         } else if (animationType == AnimationsType.scaleAnimation) {
           fadeStage.value = 1; // split old number
@@ -783,12 +801,17 @@ class DialPageController extends GetxController
 
           await _addAndSaveNumber(displayNumber);
 
+          debugPrint("DEBUG: [doTheTrick] Setting shouldGlitch = true");
           shouldGlitch = true;
+          debugPrint("DEBUG: [doTheTrick] Calling animatedGlitchController.start()");
+          animatedGlitchController.start();
           AudioService.instance.playGlitchSound();
 
           await Future.delayed(const Duration(milliseconds: 2500));
 
+          debugPrint("DEBUG: [doTheTrick] Setting shouldGlitch = false");
           shouldGlitch = false;
+          animatedGlitchController.stop();
         }
       } else if (animationType == AnimationsType.scaleAnimation) {
         fadeStage.value = 1; // split old number
@@ -931,10 +954,15 @@ class DialPageController extends GetxController
 
           await _addAndSaveNumber(displayNumber);
 
+          debugPrint("DEBUG: [doTheTrick] Setting shouldGlitch = true");
           shouldGlitch = true;
+          debugPrint("DEBUG: [doTheTrick] Calling animatedGlitchController.start()");
+          animatedGlitchController.start();
           AudioService.instance.playGlitchSound();
           await Future.delayed(const Duration(milliseconds: 2500));
+          debugPrint("DEBUG: [doTheTrick] Setting shouldGlitch = false");
           shouldGlitch = false;
+          animatedGlitchController.stop();
 
           // ✨ Trick done − transition to post-reveal editing state
           hasRevealed = true;

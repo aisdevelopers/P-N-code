@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:animated_glitch/animated_glitch.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'dart:ui' as dart_ui;
 import '../../../../utils/constants/img_constants.dart';
@@ -190,6 +191,36 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
                     stage: controller.fadeStage.value,
                     oldText: controller.displayText,
                     newText: controller.displayNumber,
+                  );
+                } else if (controller.animationType ==
+                    AnimationsType.glitchyAnimation) {
+                  debugPrint("DEBUG: [DisplayNumberAreaWidget] Rendering glitchyAnimation case");
+                  return SizedBox(
+                    height: 100,
+                    child: Center(
+                      child: AnimatedGlitch(
+                        controller: controller.animatedGlitchController,
+                        child: AutoSizeText(
+                          controller.displayNumber,
+                          maxLines: 1,
+                          minFontSize: 28,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            letterSpacing: 0,
+                            color: HelperFunctions.isDarkMode(context)
+                                ? Colors.white
+                                : Colors.black,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: '.SF Pro Display',
+                            fontSize: controller.displayNumber.length >
+                                    controller.maxVisible
+                                ? 28
+                                : 34,
+                          ),
+                        ),
+                      ),
+                    ),
                   );
                 }
               }

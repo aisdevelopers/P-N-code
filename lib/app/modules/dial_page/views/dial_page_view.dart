@@ -24,6 +24,7 @@ class DialPageView extends StatelessWidget {
       // appBar: AppBar(actions: [Icon(Icons.person)]),
       body: Obx(() {
         final controller = DialPageController.instance;
+        debugPrint("DEBUG: [DialPageView] Obx rebuild. shouldGlitch: ${controller.shouldGlitch}");
 
         return Stack(
           children: [

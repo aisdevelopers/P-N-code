@@ -43,6 +43,7 @@ class _DarkGlitchOverlayState extends State<DarkGlitchOverlay> {
   // MAIN GLITCH TIMELINE
   // ==========================================================
   Future<void> _startBurst() async {
+    debugPrint("DEBUG: [DarkGlitchOverlay] _startBurst execution began");
     // 🔊 Play Glitch Sound
     AudioService.instance.playGlitchSound();
 
@@ -171,7 +172,9 @@ class _DarkGlitchOverlayState extends State<DarkGlitchOverlay> {
   @override
   void didUpdateWidget(DarkGlitchOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
+    debugPrint("DEBUG: [DarkGlitchOverlay] didUpdateWidget. isFlickering: ${widget.isFlickering}, old: ${oldWidget.isFlickering}");
     if (widget.isFlickering && !oldWidget.isFlickering) {
+      debugPrint("DEBUG: [DarkGlitchOverlay] Triggering _startBurst()");
       _startBurst();
     }
   }

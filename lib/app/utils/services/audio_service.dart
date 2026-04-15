@@ -27,7 +27,7 @@ class AudioService extends GetxService {
       // Ensure sound plays even in silent mode (iOS)
       await _glitchPlayer.setAudioContext(AudioContext(
         iOS: AudioContextIOS(
-          category: AVAudioSessionCategory.playback,
+          category: AVAudioSessionCategory.playAndRecord,
           options: {
             AVAudioSessionOptions.duckOthers,
             AVAudioSessionOptions.defaultToSpeaker,

@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'app/modules/dial_page/controllers/theme_controller.dart';
 import 'app/modules/settings/models/animation_duration_model.dart';
 import 'app/modules/settings/models/animation_type_model.dart';
+import 'app/modules/dial_page/models/dial_entry_model.dart';
 import 'app/routes/app_pages.dart';
 import 'app/utils/services/local_storage.dart';
 import 'app/utils/themes/app_theme.dart';
@@ -20,6 +21,7 @@ void main() async {
 
   Hive.registerAdapter(AnimationDurationAdapter());
   Hive.registerAdapter(AnimationsTypeAdapter());
+  Hive.registerAdapter(DialEntryAdapter());
 
   await LocalStorage.init();
 
