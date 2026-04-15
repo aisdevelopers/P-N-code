@@ -172,7 +172,6 @@ class DialPageController extends GetxController
   final RxString _dialPadTargetNumber = ''.obs;
   Timer? _dialPadIdleTimer;
 
-
   // final RxBool _isSlideAnimating = false.obs;
   // bool get isSlideAnimating => _isSlideAnimating.value;
   // set isSlideAnimating(bool v) => _isSlideAnimating.value = v;
@@ -260,8 +259,9 @@ class DialPageController extends GetxController
     }
 
     // STEP X: Load Trick Trigger
-    final savedTriggerName =
-        LocalStorage.get<String>(KeyConstants.savedTrickTriggerKey);
+    final savedTriggerName = LocalStorage.get<String>(
+      KeyConstants.savedTrickTriggerKey,
+    );
     if (savedTriggerName != null) {
       trickTrigger = TrickTrigger.values.firstWhere(
         (e) => e.name == savedTriggerName,
@@ -276,7 +276,8 @@ class DialPageController extends GetxController
     _initBackTapListener();
 
     _dialPadTargetNumber.value =
-        LocalStorage.get<String>(KeyConstants.savedDialPadTargetNumberKey) ?? '';
+        LocalStorage.get<String>(KeyConstants.savedDialPadTargetNumberKey) ??
+        '';
 
     // ===============================
     // 🪄 Magic Channel (App Intent)
@@ -288,7 +289,9 @@ class DialPageController extends GetxController
           debugPrint("Back Tap: iOS Intent triggered Magic");
           doTheTrick(isFromShortcut: true); // 🔥 Instant trigger, no wait
         } else {
-          debugPrint("Back Tap: Intent ignored (Trigger is set to $trickTrigger)");
+          debugPrint(
+            "Back Tap: Intent ignored (Trigger is set to $trickTrigger)",
+          );
         }
       }
     });
@@ -302,7 +305,8 @@ class DialPageController extends GetxController
 
   DateTime? _lastTapTime;
   int _shakeCount = 0;
-  static const double _shakeThreshold = 18.0; // Higher force for deliberate shakes
+  static const double _shakeThreshold =
+      18.0; // Higher force for deliberate shakes
 
   Timer? _typingTimer;
 
@@ -310,22 +314,25 @@ class DialPageController extends GetxController
     _accelerometerSubscription?.cancel();
 
     if (trickTrigger == TrickTrigger.backDoubleTap) {
-       // Handled entirely by didChangeAppLifecycleState "Open App" burst now.
-       debugPrint("Back Tap Listener initialized (Lifecycle Mode)");
+      // Handled entirely by didChangeAppLifecycleState "Open App" burst now.
+      debugPrint("Back Tap Listener initialized (Lifecycle Mode)");
     } else if (trickTrigger == TrickTrigger.shake) {
-      _accelerometerSubscription = userAccelerometerEventStream().listen((event) {
+      _accelerometerSubscription = userAccelerometerEventStream().listen((
+        event,
+      ) {
         final double magnitude = event.x.abs() + event.y.abs() + event.z.abs();
         final now = DateTime.now();
-        final int timeSinceLast = _lastTapTime != null 
-            ? now.difference(_lastTapTime!).inMilliseconds 
+        final int timeSinceLast = _lastTapTime != null
+            ? now.difference(_lastTapTime!).inMilliseconds
             : 1000;
 
         // Handle SHAKE trigger
         if (magnitude > _shakeThreshold) {
-          if (timeSinceLast > 250) { // Individual shake movement debounce
+          if (timeSinceLast > 250) {
+            // Individual shake movement debounce
             _lastTapTime = now;
             _shakeCount++;
-            
+
             HapticFeedback.mediumImpact(); // Distinct feedback for each partial shake
             debugPrint("Shake detected: Count $_shakeCount");
 
@@ -368,16 +375,19 @@ class DialPageController extends GetxController
       _initBackTapListener();
 
       // Detect iOS Shortcut "Open App" burst (Inactive -> Resumed rapidly)
-      if (trickTrigger == TrickTrigger.backDoubleTap && _lastInactiveTime != null) {
-        final diff = DateTime.now().difference(_lastInactiveTime!).inMilliseconds;
+      if (trickTrigger == TrickTrigger.backDoubleTap &&
+          _lastInactiveTime != null) {
+        final diff = DateTime.now()
+            .difference(_lastInactiveTime!)
+            .inMilliseconds;
         debugPrint("Lifecycle diff: $diff ms");
         if (diff < 1500) {
           // Ensure we aren't typing, just like the old logic
           if (_typingTimer?.isActive ?? false) {
-             debugPrint("Back Tap ignored: user is typing");
+            debugPrint("Back Tap ignored: user is typing");
           } else {
-             debugPrint("Back Tap: Apple Shortcut 'Open App' burst detected!");
-             doTheTrick(isFromShortcut: true);
+            debugPrint("Back Tap: Apple Shortcut 'Open App' burst detected!");
+            doTheTrick(isFromShortcut: true);
           }
         }
       }
@@ -456,7 +466,7 @@ class DialPageController extends GetxController
       // 🛑 Reset typing timer so lifecycle check knows user is active
       _typingTimer?.cancel();
       _typingTimer = Timer(const Duration(milliseconds: 600), () {
-          // Timer naturally expires, indicating user stopped typing
+        // Timer naturally expires, indicating user stopped typing
       });
 
       HapticFeedback.lightImpact();
@@ -623,18 +633,20 @@ class DialPageController extends GetxController
   }
 
   void doTheTrick({bool isFromShortcut = false}) async {
-    debugPrint("DEBUG: [doTheTrick] REACHED. mode: $mode, isLocked: $isLocked, animationType: $animationType");
+    debugPrint(
+      "DEBUG: [doTheTrick] REACHED. mode: $mode, isLocked: $isLocked, animationType: $animationType",
+    );
     if (isHoldingHash) return;
     // 🚨 Allow Lock Mode even if no digits typed
     if (mode != 'Lock Mode' && displayNumber.isEmpty) return;
 
-    final saved = (mode == 'Dial Pad Mode') 
-          ? _dialPadTargetNumber.value 
-          : LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
+    final saved = (mode == 'Dial Pad Mode')
+        ? _dialPadTargetNumber.value
+        : LocalStorage.get<String>(KeyConstants.savedPhoneNumberKey) ?? '';
 
     if (saved.isEmpty && mode != 'Lock Mode') {
-        Get.snackbar('Error', 'No target number captured yet.');
-        return;
+      Get.snackbar('Error', 'No target number captured yet.');
+      return;
     }
 
     // ✅ animationType is already set by the user's dropdown selection — do NOT reset it here.
@@ -655,7 +667,7 @@ class DialPageController extends GetxController
       const cueMs = 1000; // 1 second before animation
       if (totalMs > cueMs) {
         await Future.delayed(Duration(milliseconds: totalMs - cueMs));
-        isMinusMode = true;  // ✨ Show '+' to magician — snap now!
+        isMinusMode = true; // ✨ Show '+' to magician — snap now!
         await Future.delayed(const Duration(milliseconds: cueMs));
         isMinusMode = false; // back to '-'
       } else {
@@ -663,6 +675,7 @@ class DialPageController extends GetxController
         await Future.delayed(animationDuration.duration);
       }
     }
+
     // ===================================================
     // 🔒 LOCK MODE (Black screen toggle + reveal saved number)
     // ===================================================
@@ -692,15 +705,20 @@ class DialPageController extends GetxController
             revealAnswer = true;
             hasRevealed = true;
 
-            await _addAndSaveNumber(displayNumber, isFromShortcut: isFromShortcut);
+            await _addAndSaveNumber(
+              displayNumber,
+              isFromShortcut: isFromShortcut,
+            );
 
             debugPrint("DEBUG: [doTheTrick] Setting shouldGlitch = true");
             shouldGlitch = true;
-            
+
             // 🕒 Wait one frame for widget to bind controller
             await Future.delayed(const Duration(milliseconds: 50));
-            
-            debugPrint("DEBUG: [doTheTrick] Calling animatedGlitchController.start()");
+
+            debugPrint(
+              "DEBUG: [doTheTrick] Calling animatedGlitchController.start()",
+            );
             animatedGlitchController.start();
             AudioService.instance.playGlitchSound();
 
@@ -758,9 +776,11 @@ class DialPageController extends GetxController
           fadeStage.value = 2; // Begin left-to-right locking
           displayNumber = saved; // Set real target before it finishes stopping
 
-          await Future.delayed(Duration(milliseconds: (saved.length * 150) + 200));
+          await Future.delayed(
+            Duration(milliseconds: (saved.length * 150) + 200),
+          );
           fadeStage.value = 3; // Fully locked
-          
+
           await _addAndSaveNumber(displayNumber);
         } else {
           revealAnswer = true;
@@ -803,7 +823,9 @@ class DialPageController extends GetxController
 
           debugPrint("DEBUG: [doTheTrick] Setting shouldGlitch = true");
           shouldGlitch = true;
-          debugPrint("DEBUG: [doTheTrick] Calling animatedGlitchController.start()");
+          debugPrint(
+            "DEBUG: [doTheTrick] Calling animatedGlitchController.start()",
+          );
           animatedGlitchController.start();
           AudioService.instance.playGlitchSound();
 
@@ -873,7 +895,9 @@ class DialPageController extends GetxController
         fadeStage.value = 2;
         displayNumber = saved;
 
-        await Future.delayed(Duration(milliseconds: (saved.length * 150) + 200));
+        await Future.delayed(
+          Duration(milliseconds: (saved.length * 150) + 200),
+        );
         fadeStage.value = 3;
 
         await _addAndSaveNumber(displayNumber, isFromShortcut: isFromShortcut);
@@ -889,7 +913,9 @@ class DialPageController extends GetxController
 
         // FRAME 5: Resolution Lock
         fadeStage.value = 3;
-        await Future.delayed(Duration(milliseconds: (saved.length * 200) + 500));
+        await Future.delayed(
+          Duration(milliseconds: (saved.length * 200) + 500),
+        );
 
         // FRAME 6: Final Sharp Reveal
         fadeStage.value = 4;
@@ -905,11 +931,15 @@ class DialPageController extends GetxController
         // FRAME 3 & 4: Shuffle Phase
         fadeStage.value = 2;
         displayNumber = saved;
-        await Future.delayed(const Duration(milliseconds: 2500)); // Increased from 1500
+        await Future.delayed(
+          const Duration(milliseconds: 2500),
+        ); // Increased from 1500
 
         // FRAME 5: Reorder Phase (Snap into new positions)
         fadeStage.value = 3;
-        await Future.delayed(Duration(milliseconds: (saved.length * 200) + 500));
+        await Future.delayed(
+          Duration(milliseconds: (saved.length * 200) + 500),
+        );
 
         // FRAME 6: Final Sharp Reveal
         fadeStage.value = 4;
@@ -956,7 +986,9 @@ class DialPageController extends GetxController
 
           debugPrint("DEBUG: [doTheTrick] Setting shouldGlitch = true");
           shouldGlitch = true;
-          debugPrint("DEBUG: [doTheTrick] Calling animatedGlitchController.start()");
+          debugPrint(
+            "DEBUG: [doTheTrick] Calling animatedGlitchController.start()",
+          );
           animatedGlitchController.start();
           AudioService.instance.playGlitchSound();
           await Future.delayed(const Duration(milliseconds: 2500));
@@ -1021,7 +1053,9 @@ class DialPageController extends GetxController
         fadeStage.value = 2;
         await Future.delayed(const Duration(milliseconds: 1200));
         fadeStage.value = 3;
-        await Future.delayed(Duration(milliseconds: (displayNumber.length * 200) + 500));
+        await Future.delayed(
+          Duration(milliseconds: (displayNumber.length * 200) + 500),
+        );
         fadeStage.value = 4;
         await Future.delayed(const Duration(milliseconds: 500));
         await _addAndSaveNumber(displayNumber);
@@ -1035,7 +1069,9 @@ class DialPageController extends GetxController
         fadeStage.value = 2;
         await Future.delayed(const Duration(milliseconds: 1500));
         fadeStage.value = 3;
-        await Future.delayed(Duration(milliseconds: (displayNumber.length * 200) + 500));
+        await Future.delayed(
+          Duration(milliseconds: (displayNumber.length * 200) + 500),
+        );
         fadeStage.value = 4;
         await Future.delayed(const Duration(milliseconds: 500));
         await _addAndSaveNumber(displayNumber);
@@ -1128,9 +1164,15 @@ class DialPageController extends GetxController
     );
   }
 
-  Future<void> _addAndSaveNumber(String number, {bool isFromShortcut = false}) async {
+  Future<void> _addAndSaveNumber(
+    String number, {
+    bool isFromShortcut = false,
+  }) async {
     if (number.isEmpty) return;
-    enteredNumbers.insert(0, DialEntry(number: number, dateTime: DateTime.now()));
+    enteredNumbers.insert(
+      0,
+      DialEntry(number: number, dateTime: DateTime.now()),
+    );
     enteredNumbers.assignAll(enteredNumbers.take(20).toList());
     await LocalStorage.set(KeyConstants.savedCallHistoryKey, enteredNumbers);
   }
