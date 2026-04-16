@@ -1,22 +1,23 @@
 # Project Handoff - PN Code Dialer
 
 ## Current Status
+- **Wave Animation**: ✅ REFACTORED to sinusoidal traveling wave.
+- **Reveal Stabilization**: ✅ FIXED (Masked text is now "frozen" during tricks to prevent early reveal).
 - **iOS Back Tap (Shortcuts)**: ✅ IMPLEMENTED (Via URL Scheme `pncode://magic`)
 - **Glitch Sound Effects**: ✅ IMPLEMENTED
-- **Covert Mode Magic Reveal**: ✅ FIXED & VERIFIED
-- **Back-Tap Trigger during Typing**: ✅ FIXED (ignored while typing)
-- **Back-Tap Native Precision**: ✅ FIXED (Z-axis Polarity/Dominance mimicking Apple iOS)
-- **File splitting refactor**: ✅ COMPLETED for `DisplayNumberAreaWidget`
+- **File splitting refactor**: ✅ COMPLETED for `DisplayNumberAreaWidget`.
 
 ## Modified Files (Last Session)
-- **`lib/app/modules/dial_page/views/widgets/display_number_area_widget.dart`**: Extracted embedded animation classes.
-- **Created a new `/animations/` folder**: Extracted the inner animation widget classes (`SlideRevealAnimation`, `SlotMachineAnimation`, etc.) into 7 distinct files within this directory.
-- `ios/Runner/Info.plist`, `ios/Runner/AppDelegate.swift` (from previous)
+- **`lib/app/modules/dial_page/controllers/dial_page_controller.dart`**: Implemented `_maskedString` stabilizer and Wave lifecycle updates.
+- **`lib/app/modules/dial_page/views/widgets/animations/wave_reveal_animation.dart`**: Created new fluid wave implementation.
+- **`lib/app/modules/dial_page/views/widgets/display_number_area_widget.dart`**: Integrated `WaveRevealAnimation`.
 
-## Key Architecture — Back Tap (iOS)
-- **Shortcuts Integration**: Uses a system-level URL scheme (`pncode://magic`) which makes it compatible with Apple's "Back Tap" accessibility feature via Shortcuts. This avoids the limitations of accelerometer listening while the app is in the background or semi-active.
+## Key Architecture — Wave Reveal
+- **Traveling Pulse**: Uses `sin(pi * progress)` with an index-based `digitStart` stagger to create a traveling ripple effect.
+- **Peak Identification**: The character identity flip happens at the crest of the bounce (`digitProgress > 0.5`) of each individual digit.
+- **State Preservation**: The `_maskedString` in the controller acts as a lock, ensuring the UI doesn't see the "new" results until the animation pass occurs.
 
 ## Next 3 Tasks
-1. Set up the Shortcut and Back Tap on a physical iPhone.
-2. Place `glitch.mp3` in `assets/sounds/` and run `flutter pub get`.
-3. Evaluate if `DialPageController` requires further refactor by using standard Flutter Mixins for its `doTheTrick()` logic.
+1. Refactor `DigitSequenceAnimation` (used for Fade) to handle length mismatches more gracefully.
+2. Evaluate performance of `WaveRevealAnimation` on high-bitrate displays (check for jank).
+3. Implement a "Settling" secondary ripple for the Wave animation (haptic feedback on each digit peak).
