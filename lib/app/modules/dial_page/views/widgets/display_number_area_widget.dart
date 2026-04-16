@@ -19,6 +19,7 @@ import "animations/slot_machine_animation.dart";
 import "animations/data_stream_animation.dart";
 import "animations/digit_clone_flood_animation.dart";
 import "animations/digit_shuffle_deck_animation.dart";
+import "animations/wave_reveal_animation.dart";
 
 class DisplayNumberAreaWidget extends GetView<DialPageController> {
   const DisplayNumberAreaWidget({super.key});
@@ -124,20 +125,10 @@ class DisplayNumberAreaWidget extends GetView<DialPageController> {
                   );
                 } else if (controller.animationType ==
                     AnimationsType.waveAnimation) {
-                  return AnimatedTextKit(
-                    totalRepeatCount: 1,
-                    repeatForever: false,
-                    animatedTexts: [
-                      WavyAnimatedText(
-                        controller.displayNumber,
-                        textStyle: TextStyle(
-                          fontSize: 34,
-                          color: HelperFunctions.isDarkMode(context)
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                    ],
+                  return WaveRevealAnimation(
+                    stage: controller.fadeStage.value,
+                    oldText: controller.displayText,
+                    newText: controller.displayNumber,
                   );
                 } else if (controller.animationType ==
                     AnimationsType.scrambleAnimation) {

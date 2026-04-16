@@ -45,6 +45,7 @@ class DialPageController extends GetxController
   set timeRevealIndex(int value) => _timeRevealIndex.value = value;
 
   String _previousInput = '';
+  String _maskedString = '';
 
   final RxInt fadeStage = 0.obs;
 
@@ -597,10 +598,14 @@ class DialPageController extends GetxController
   }
 
   String get displayText {
+    // If we are currently in the middle of a trick animation,
+    // prefer showing the "frozen" masked string until the final reveal.
+    if ((revealAnswer || fadeStage.value > 0) && !hasRevealed) {
+      if (_maskedString.isNotEmpty) return _maskedString;
+    }
+
     // Covert Mode → Show saved number while typing,
     // but ONLY after trick is FULLY done (hasRevealed=true), show raw typed number.
-    // During the trick animation (revealAnswer=true but hasRevealed=false),
-    // keep showing the MASKED value so old/new animation values are correct.
     if (mode == 'Covert Mode') {
       if (hasRevealed) {
         return displayNumber;
@@ -614,11 +619,10 @@ class DialPageController extends GetxController
       return t;
     }
 
-    if (mode == 'Reverse Covert Mode') {
-      return displayNumber;
-    }
-
-    if (mode == 'Time Mode') {
+    if (mode == 'Reverse Covert Mode' ||
+        mode == 'Time Mode' ||
+        mode == 'Dial Pad Mode' ||
+        mode == 'Lock Mode') {
       return displayNumber;
     }
 
@@ -639,6 +643,8 @@ class DialPageController extends GetxController
     if (isHoldingHash) return;
     // 🚨 Allow Lock Mode even if no digits typed
     if (mode != 'Lock Mode' && displayNumber.isEmpty) return;
+
+    _maskedString = displayText;
 
     final saved = (mode == 'Dial Pad Mode')
         ? _dialPadTargetNumber.value
@@ -739,6 +745,7 @@ class DialPageController extends GetxController
 
           // displayNumber = saved;
           fadeStage.value = 2; // bring new halves
+          displayNumber = saved;
 
           await Future.delayed(const Duration(milliseconds: 500));
 
@@ -757,6 +764,7 @@ class DialPageController extends GetxController
           await Future.delayed(const Duration(milliseconds: 450));
 
           fadeStage.value = 2;
+          displayNumber = saved;
 
           await Future.delayed(const Duration(seconds: 2));
 
@@ -957,6 +965,16 @@ class DialPageController extends GetxController
         await Future.delayed(const Duration(milliseconds: 500));
 
         await _addAndSaveNumber(displayNumber);
+      } else if (animationType == AnimationsType.waveAnimation) {
+        fadeStage.value = 1;
+        displayNumber = saved;
+
+        // Wait for the wave to finish (1500ms in widget + buffer)
+        await Future.delayed(const Duration(milliseconds: 2000));
+
+        await _addAndSaveNumber(displayNumber, isFromShortcut: isFromShortcut);
+        hasRevealed = true;
+        fadeStage.value = 0;
       } else {
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);
@@ -1085,8 +1103,19 @@ class DialPageController extends GetxController
         hasRevealed = true;
         revealAnswer = false;
         fadeStage.value = 0;
+      } else if (animationType == AnimationsType.waveAnimation) {
+        fadeStage.value = 1;
+        // In Covert Mode, displayNumber already contains the target
+        // but it is masked by displayText until hasRevealed = true.
+
+        await Future.delayed(const Duration(milliseconds: 2000));
+
+        await _addAndSaveNumber(displayNumber);
+        hasRevealed = true;
+        revealAnswer = false;
+        fadeStage.value = 0;
       } else {
-        // scramble / simple / wave / typewriter etc.
+        // scramble / simple / typewriter etc.
         revealAnswer = true;
         await _addAndSaveNumber(displayNumber);
         // Wait for the UI animation (e.g. scramble ~2s) to finish

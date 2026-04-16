@@ -63,9 +63,12 @@ class DigitAnimatorState extends State<DigitAnimator>
   late Animation<double> offset;
   late Animation<double> opacity;
 
+  late String initialDigit;
+
   @override
   void initState() {
     super.initState();
+    initialDigit = widget.oldDigit;
 
     controller = AnimationController(
       vsync: this,
@@ -78,55 +81,71 @@ class DigitAnimatorState extends State<DigitAnimator>
     ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
 
     opacity = Tween<double>(begin: 1, end: 0).animate(controller);
+
+    if (widget.stage >= 2) {
+      controller.value = 1.0;
+      Future.delayed(Duration(milliseconds: widget.index * 180), () {
+        if (mounted) controller.reverse();
+      });
+    } else if (widget.stage == 1) {
+      Future.delayed(Duration(milliseconds: widget.index * 180), () {
+        if (mounted) controller.forward();
+      });
+    }
   }
 
   @override
   void didUpdateWidget(covariant DigitAnimator oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.stage == 1) {
-      Future.delayed(Duration(milliseconds: widget.index * 180), () {
-        if (mounted) controller.forward();
-      });
-    }
+    if (oldWidget.stage != widget.stage) {
+      if (widget.stage == 1) {
+        Future.delayed(Duration(milliseconds: widget.index * 180), () {
+          if (mounted) controller.forward();
+        });
+      }
 
-    if (widget.stage == 2) {
-      controller.value = 1;
+      if (widget.stage == 2) {
+        controller.value = 1.0;
 
-      Future.delayed(Duration(milliseconds: widget.index * 180), () {
-        if (mounted) controller.reverse();
-      });
+        Future.delayed(Duration(milliseconds: widget.index * 180), () {
+          if (mounted) controller.reverse();
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Determine which digit to show based on stage
-    // Stage 1 (Fade Up): Always show oldDigit
-    // Stage 2 (Reveal Down): Always show newDigit
-    final String displayDigit =
-        widget.stage < 2 ? widget.oldDigit : widget.newDigit;
-
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
+        String displayDigit = initialDigit;
+
+        if (widget.stage >= 2) {
+          if (controller.status == AnimationStatus.reverse ||
+              controller.value < 0.99) {
+            displayDigit = widget.newDigit;
+          }
+        }
+
         return Transform.translate(
           offset: Offset(0, offset.value),
           child: Opacity(
-            opacity: widget.stage == 1 ? opacity.value : 1,
-            child: child,
+            opacity: opacity.value,
+            child: Text(
+              displayDigit,
+              style: TextStyle(
+                fontSize: 34,
+                color: HelperFunctions.isDarkMode(context)
+                    ? Colors.white
+                    : Colors.black,
+              ),
+            ),
           ),
         );
       },
-      child: Text(
-        displayDigit,
-        style: TextStyle(
-          fontSize: 34,
-          color: HelperFunctions.isDarkMode(context)
-              ? Colors.white
-              : Colors.black,
-        ),
-      ),
     );
   }
 }
+
