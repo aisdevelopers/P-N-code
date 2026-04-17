@@ -19,4 +19,5 @@ class KeyConstants {
   static const String addOneMinuteKey = "add_one_minute_key";
   static const String savedTrickTriggerKey = 'saved_trick_trigger';
   static const String savedDialPadTargetNumberKey = 'saved_dialpad_target_number';
+  static const String isAppUnlockedKey = 'is_app_unlocked';
 }
