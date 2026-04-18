@@ -5,9 +5,12 @@
 - **Reveal Stabilization**: ✅ FIXED (Masked text is now "frozen" during tricks to prevent early reveal).
 - **iOS Back Tap (Shortcuts)**: ✅ IMPLEMENTED (Via URL Scheme `pncode://magic`)
 - **Glitch Sound Effects**: ✅ IMPLEMENTED
+- **iOS dSYM Fix**: ✅ COMPLETED (Project and Podfile updated for Release/Profile builds).
 - **File splitting refactor**: ✅ COMPLETED for `DisplayNumberAreaWidget`.
 
 ## Modified Files (Last Session)
+- **`ios/Runner.xcodeproj/project.pbxproj`**: Enabled dSYM generation and stripping for Runner target.
+- **`ios/Podfile`**: Forced dSYM generation for Pods in Release/Profile.
 - **`lib/app/modules/dial_page/controllers/dial_page_controller.dart`**: Implemented `_maskedString` stabilizer and Wave lifecycle updates.
 - **`lib/app/modules/dial_page/views/widgets/animations/wave_reveal_animation.dart`**: Created new fluid wave implementation.
 - **`lib/app/modules/dial_page/views/widgets/display_number_area_widget.dart`**: Integrated `WaveRevealAnimation`.
