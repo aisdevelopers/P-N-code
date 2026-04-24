@@ -52,6 +52,7 @@ class SettingsView extends GetView<SettingsController> {
           child: GetBuilder<SettingsController>(
             builder: (controller) {
               return SingleChildScrollView(
+                controller: controller.scrollController,
                 child: Column(
                   children: [
                     Form(

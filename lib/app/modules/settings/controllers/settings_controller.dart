@@ -20,7 +20,7 @@ class SettingsController extends GetxController {
   static SettingsController get instance => Get.find<SettingsController>();
 
   final TextEditingController actualNumber = TextEditingController();
-
+  final ScrollController scrollController = ScrollController();
   final GlobalKey<FormState> settingsFormKey = GlobalKey<FormState>();
 
   final List<ModeModel> modeList = [
@@ -307,7 +307,7 @@ class SettingsController extends GetxController {
         DialPageController.instance.revealAnswer = false;
         DialPageController.instance.hasRevealed = false;
         DialPageController.instance.shouldGlitch = false;
-          DialPageController.instance.fadeStage.value = 0;
+        DialPageController.instance.fadeStage.value = 0;
         Get.back();
       }
       if (selectedMode.title != "Lock Mode") {
@@ -319,8 +319,14 @@ class SettingsController extends GetxController {
       }
 
       _updateInitialValues();
+    } else {
+      // 🚀 Auto-scroll to the validation error at the top
+      scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
     }
-    // }
   }
 
   Future<void> resetApplicationData() async {

@@ -1,7 +1,8 @@
 # Project Handoff - PN Code Dialer
 
 ## Current Status
-- **Apple Bypass**: ✅ IMPLEMENTED (Dialpad shapes shift Square -> Circle via file upload in Settings).
+- **Apple Bypass**: ✅ IMPLEMENTED (Dialpad shapes shift Square -> Circle via .pncode file upload).
+- **Auto-scroll to Error**: ✅ IMPLEMENTED (Settings page scrolls to top if validation fails).
 - **Wave Animation**: ✅ REFACTORED to sinusoidal traveling wave.
 - **Reveal Stabilization**: ✅ FIXED.
 - **iOS Back Tap (Shortcuts)**: ✅ IMPLEMENTED.
@@ -9,18 +10,15 @@
 - **iOS dSYM Fix**: ✅ COMPLETED.
 
 ## Modified Files (Current Session)
-- **`pubspec.yaml`**: Added `file_picker` dependency.
-- **`lib/app/utils/constants/key_constants.dart`**: Added `isAppleBypassActiveKey`.
-- **`lib/app/modules/settings/controllers/settings_controller.dart`**: Added `isAppleBypassActive` state and `pickBypassFile()` validation logic.
-- **`lib/app/modules/settings/views/settings_view.dart`**: Added "Apple Bypass" upload UI section.
-- **`lib/app/modules/dial_page/views/dial_page_view.dart`**: Updated `DialPadItemWidget` to use reactive `Obx` shape-shifting.
+- **`lib/app/modules/settings/controllers/settings_controller.dart`**: Added `ScrollController` and logic to scroll to top on validation failure.
+- **`lib/app/modules/settings/views/settings_view.dart`**: Attached `scrollController` to the `SingleChildScrollView`.
+- **`PN_Dialer_Config.pncode`**: Created project-specific bypass configuration file.
 
 ## Key Logic — Apple Bypass
-- **Trigger**: Upload a file containing the string `ACTIVATE_BYPASS_99`.
+- **Trigger**: Upload a file containing `"shape_type" : "circle"`.
 - **UI State**: Default state is `BoxShape.rectangle` with `12.0` radius. When active, shifts to `BoxShape.circle`.
-- **Persistence**: State is saved in Hive under `is_apple_bypass_active`.
 
 ## Next 3 Tasks
-1. **Validation**: Test `file_picker` on physical iOS device (check for Info.plist permission requirements if any).
+1. **Validation**: Test `file_picker` on physical iOS device.
 2. **Haptics**: Add haptic feedback for successful bypass activation.
 3. **Refactor**: Implement a "Settling" secondary ripple for the Wave animation.
