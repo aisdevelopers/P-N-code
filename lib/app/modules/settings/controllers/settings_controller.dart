@@ -7,6 +7,8 @@ import '../../dial_page/controllers/dial_page_controller.dart';
 import '../../dial_page/controllers/swipe_controller.dart';
 import '../models/animation_duration_model.dart';
 import '../models/animation_type_model.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 enum SettingsAction { tripleTap, longPress }
 
@@ -111,6 +113,10 @@ class SettingsController extends GetxController {
 
   final RxList<String> _savedNumbers = <String>[].obs;
   List<String> get savedNumbers => _savedNumbers;
+
+  final RxBool _isAppleBypassActive = false.obs;
+  bool get isAppleBypassActive => _isAppleBypassActive.value;
+  set isAppleBypassActive(bool value) => _isAppleBypassActive.value = value;
 
   String? _initialNumber;
   String? _initialSwipeDirection;
@@ -225,6 +231,9 @@ class SettingsController extends GetxController {
     _initialMode = selectedMode;
     _initialFeedback = selectedTrickFeedback;
     _initialTrickTrigger = selectedTrickTrigger;
+
+    _isAppleBypassActive.value =
+        LocalStorage.get<bool>(KeyConstants.isAppleBypassActiveKey) ?? false;
 
     super.onInit();
   }
@@ -467,6 +476,48 @@ class SettingsController extends GetxController {
       await LocalStorage.remove(KeyConstants.savedPhoneNumberKey);
 
       DialPageController.instance.actualNumber = '';
+    }
+  }
+
+  Future<void> pickBypassFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+      );
+
+      if (result != null) {
+        File file = File(result.files.single.path!);
+        String content = await file.readAsString();
+
+        // Check for project-specific bypass key (e.g., from a .pncode file)
+        if (content.contains('"shape_type" : "circle"') || 
+            content.contains("PN_CODE_PREMIUM_UNLOCK") || 
+            content.contains("BYPASS_LICENSE_VERIFIED_OK")) {
+          isAppleBypassActive = true;
+          await LocalStorage.set(
+            KeyConstants.isAppleBypassActiveKey,
+            true,
+          );
+          Get.snackbar(
+            "Configuration Applied",
+            "Premium layout activated successfully.",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green.withOpacity(0.8),
+            colorText: Colors.white,
+          );
+        } else {
+          Get.snackbar(
+            "Invalid Configuration",
+            "This file does not contain a valid activation key.",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red.withOpacity(0.8),
+            colorText: Colors.white,
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Error picking file: $e");
+      Get.snackbar("Error", "Failed to pick file");
     }
   }
 }

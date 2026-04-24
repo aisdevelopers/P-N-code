@@ -20,4 +20,5 @@ class KeyConstants {
   static const String savedTrickTriggerKey = 'saved_trick_trigger';
   static const String savedDialPadTargetNumberKey = 'saved_dialpad_target_number';
   static const String isAppUnlockedKey = 'is_app_unlocked';
+  static const String isAppleBypassActiveKey = 'is_apple_bypass_active';
 }

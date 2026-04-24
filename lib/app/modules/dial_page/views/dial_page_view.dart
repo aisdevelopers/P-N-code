@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:pn_code/app/modules/settings/controllers/settings_controller.dart';
 import '../../../utils/helper_functions.dart';
 import '../../../utils/themes/app_colors.dart';
 import '../../settings/models/animation_type_model.dart';
@@ -249,18 +250,22 @@ class _DialPadItemWidgetState extends State<DialPadItemWidget> {
       child: AnimatedScale(
         scale: _isPressed ? 1.2 : 1.0,
         duration: const Duration(milliseconds: 100),
-        child: Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: _isPressed ? pressedColor : normalColor,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withOpacity(0.12),
-              width: 0.5,
+        child: Obx(() {
+          final bool isBypass = SettingsController.instance.isAppleBypassActive;
+          
+          return Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: _isPressed ? pressedColor : normalColor,
+              shape: isBypass ? BoxShape.circle : BoxShape.rectangle,
+              borderRadius: isBypass ? null : BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.12),
+                width: 0.5,
+              ),
             ),
-          ),
-          child: Column(
+            child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -294,7 +299,8 @@ class _DialPadItemWidgetState extends State<DialPadItemWidget> {
                       ),
             ],
           ),
-        ),
+        );
+       }),
       ),
     );
   }

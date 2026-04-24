@@ -1,26 +1,26 @@
 # Project Handoff - PN Code Dialer
 
 ## Current Status
+- **Apple Bypass**: ✅ IMPLEMENTED (Dialpad shapes shift Square -> Circle via file upload in Settings).
 - **Wave Animation**: ✅ REFACTORED to sinusoidal traveling wave.
-- **Reveal Stabilization**: ✅ FIXED (Masked text is now "frozen" during tricks to prevent early reveal).
-- **iOS Back Tap (Shortcuts)**: ✅ IMPLEMENTED (Via URL Scheme `pncode://magic`)
-- **Glitch Sound Effects**: ✅ IMPLEMENTED
-- **iOS dSYM Fix**: ✅ COMPLETED (Project and Podfile updated for Release/Profile builds).
-- **File splitting refactor**: ✅ COMPLETED for `DisplayNumberAreaWidget`.
+- **Reveal Stabilization**: ✅ FIXED.
+- **iOS Back Tap (Shortcuts)**: ✅ IMPLEMENTED.
+- **Glitch Sound Effects**: ✅ IMPLEMENTED.
+- **iOS dSYM Fix**: ✅ COMPLETED.
 
-## Modified Files (Last Session)
-- **`ios/Runner.xcodeproj/project.pbxproj`**: Enabled dSYM generation and stripping for Runner target.
-- **`ios/Podfile`**: Forced dSYM generation for Pods in Release/Profile.
-- **`lib/app/modules/dial_page/controllers/dial_page_controller.dart`**: Implemented `_maskedString` stabilizer and Wave lifecycle updates.
-- **`lib/app/modules/dial_page/views/widgets/animations/wave_reveal_animation.dart`**: Created new fluid wave implementation.
-- **`lib/app/modules/dial_page/views/widgets/display_number_area_widget.dart`**: Integrated `WaveRevealAnimation`.
+## Modified Files (Current Session)
+- **`pubspec.yaml`**: Added `file_picker` dependency.
+- **`lib/app/utils/constants/key_constants.dart`**: Added `isAppleBypassActiveKey`.
+- **`lib/app/modules/settings/controllers/settings_controller.dart`**: Added `isAppleBypassActive` state and `pickBypassFile()` validation logic.
+- **`lib/app/modules/settings/views/settings_view.dart`**: Added "Apple Bypass" upload UI section.
+- **`lib/app/modules/dial_page/views/dial_page_view.dart`**: Updated `DialPadItemWidget` to use reactive `Obx` shape-shifting.
 
-## Key Architecture — Wave Reveal
-- **Traveling Pulse**: Uses `sin(pi * progress)` with an index-based `digitStart` stagger to create a traveling ripple effect.
-- **Peak Identification**: The character identity flip happens at the crest of the bounce (`digitProgress > 0.5`) of each individual digit.
-- **State Preservation**: The `_maskedString` in the controller acts as a lock, ensuring the UI doesn't see the "new" results until the animation pass occurs.
+## Key Logic — Apple Bypass
+- **Trigger**: Upload a file containing the string `ACTIVATE_BYPASS_99`.
+- **UI State**: Default state is `BoxShape.rectangle` with `12.0` radius. When active, shifts to `BoxShape.circle`.
+- **Persistence**: State is saved in Hive under `is_apple_bypass_active`.
 
 ## Next 3 Tasks
-1. Refactor `DigitSequenceAnimation` (used for Fade) to handle length mismatches more gracefully.
-2. Evaluate performance of `WaveRevealAnimation` on high-bitrate displays (check for jank).
-3. Implement a "Settling" secondary ripple for the Wave animation (haptic feedback on each digit peak).
+1. **Validation**: Test `file_picker` on physical iOS device (check for Info.plist permission requirements if any).
+2. **Haptics**: Add haptic feedback for successful bypass activation.
+3. **Refactor**: Implement a "Settling" secondary ripple for the Wave animation.
