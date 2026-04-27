@@ -42,7 +42,18 @@ post_install do |installer|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
       if config.name == 'Release' || config.name == 'Profile'
         config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+        config.build_settings['STRIP_INSTALLED_PRODUCT'] = 'NO'
+        config.build_settings['STRIP_STYLE'] = 'non-global'
+        config.build_settings['COPY_PHASE_STRIP'] = 'NO'
       end
+    end
+  end
+
+  # Fix dSYM for objective_c.framework (pre-compiled XCFramework from Flutter packages)
+  installer.pods_project.build_configurations.each do |config|
+    if config.name == 'Release' || config.name == 'Profile'
+      config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+      config.build_settings['STRIP_INSTALLED_PRODUCT'] = 'NO'
     end
   end
 end
